@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پیکسل گیف بات - گیف خودتو بساز !</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&family=Tanha:wght@400;700&family=Shabnam:wght@400;700&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e2937);
+            color: #e0f2fe;
+            margin: 0;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container { max-width: 920px; margin: auto; background: rgba(15,23,42,0.97); padding: 25px; border-radius: 20px; }
+        h1 { text-align: center; color: #67e8f9; }
+        label { display: block; margin: 15px 0 8px; font-weight: bold; color: #bae6fd; }
+        input[type="file"] { width: 100%; padding: 14px; background: #1e2937; border: 2px dashed #67e8f9; border-radius: 12px; }
+        textarea { width: 100%; padding: 14px; background: #1e2937; border: 2px dashed #67e8f9; border-radius: 12px; color: #e0f2fe; font-family: 'Vazirmatn', sans-serif; font-size: 16px; resize: vertical; min-height: 60px; }
+        button { padding: 12px 20px; margin: 5px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .generate-btn { width: 100%; padding: 18px; font-size: 18px; background: #f43f5e; color: white; border: none; }
+        video { max-width: 100%; border-radius: 12px; margin: 15px 0; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .btn-group button { flex: 1 0 auto; background: #334155; color: #e0f2fe; border: 2px solid transparent; transition: 0.2s; }
+        .btn-group button.active { border-color: #67e8f9; background: #1e2937; color: #67e8f9; }
+        #progress { background: #1e2937; padding: 20px; border-radius: 16px; }
+        #percent { font-size: 1.4rem; color: #67e8f9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 پیکسل گیف بات - گیف خودتو بساز !</h1>
+        
+        <label>1. انتخاب ویدیو</label>
+        <input type="file" id="videoInput" accept="video/*">
+        
+        <label>2. متن اصلی (برای خط جدید Enter بزنید)</label>
+        <textarea id="mainText" placeholder="متن خود را وارد کنید"></textarea>
+        
+        <label>3. سرعت ویدیو</label>
+        <div class="btn-group" id="speedGroup">
+            <button onclick="setSpeed(1, this)" class="active">۱x (عادی)</button>
+            <button onclick="setSpeed(2, this)">۲x</button>
+            <button onclick="setSpeed(3, this)">۳x</button>
+        </div>
+        
+        <label>4. موقعیت متن</label>
+        <div class="btn-group" id="posGroup">
+            <button onclick="setPos('top', this)">بالا</button>
+            <button onclick="setPos('center', this)" class="active">وسط</button>
+            <button onclick="setPos('bottom', this)">پایین</button>
+        </div>
+        
+        <button onclick="startProcessing()" id="generateBtn" disabled class="generate-btn">🚀 ساخت ویدیو</button>
+        
+        <div id="progress" style="display:none; text-align:center; margin:25px 0;">
+            <p>در حال پردازش... <span id="percent">0%</span></p>
+        </div>
+        
+        <div id="output" style="display:none; text-align:center;">
+            <h3>✅ ویدیو آماده شد</h3>
+            <video id="outputVideo" controls></video><br><br>
+            <button onclick="downloadOutput()" style="padding:16px 40px; background:#34d399; color:white; border:none; border-radius:10px;">⬇️ دانلود WebM</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPos = 'center';
+        let currentSpeed = 1;
+        let outputBlob = null;
+
+        function setPos(pos, btn) {
+            currentPos = pos;
+            document.querySelectorAll('#posGroup button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function setSpeed(speed, btn) {
+            currentSpeed = speed;
+            document.querySelectorAll('#speedGroup button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        document.getElementById('videoInput').addEventListener('change', () => {
+            document.getElementById('generateBtn').disabled = false;
+        });
+
+        async function startProcessing() {
+            const file = document.getElementById('videoInput').files[0];
+            const text = document.getElementById('mainText').value;
+            if (!file) return alert('ویدیو انتخاب کنید');
+
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('progress').style.display = 'block';
+            document.getElementById('output').style.display = 'none';
+            document.getElementById('percent').textContent = '0%';
+
+            const video = document.createElement('video');
+            video.muted = true;
+            video.playsInline = true;
+            video.preload = 'auto';
+            
+            video.style.display = 'none';
+            document.body.appendChild(video);
+            
+            video.src = URL.createObjectURL(file);
+            
+            await new Promise((resolve, reject) => {
+                video.onloadedmetadata = resolve;
+                video.onerror = (e) => {
+                    console.error('Video load error:', e);
+                    reject(e);
+                };
+                setTimeout(resolve, 5000);
+            });
+
+            console.log('Video loaded:', video.videoWidth, 'x', video.videoHeight);
+            
+            try {
+                await video.play();
+                console.log('Video playing successfully');
+                video.playbackRate = currentSpeed;
+                console.log('Speed set to:', currentSpeed);
+            } catch (playError) {
+                console.error('Play error:', playError);
+                video.muted = true;
+                await video.play().catch(e => console.error('Second play attempt failed:', e));
+                video.playbackRate = currentSpeed;
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+
+            const stream = canvas.captureStream(20);
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+            const chunks = [];
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                outputBlob = new Blob(chunks, { type: 'video/webm' });
+                document.getElementById('outputVideo').src = URL.createObjectURL(outputBlob);
+                document.getElementById('output').style.display = 'block';
+                document.getElementById('progress').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+                document.body.removeChild(video);
+            };
+
+            recorder.start(250);
+
+            const fontFamily = 'Vazirmatn';
+            let frameCount = 0;
+
+            const drawFrame = () => {
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const percent = video.duration ? Math.round((video.currentTime / video.duration) * 100) : 0;
+                    document.getElementById('percent').textContent = percent + '%';
+                    
+                    frameCount++;
+                    if (frameCount % 10 === 0) {
+                        console.log('Frame', frameCount, 'CurrentTime:', video.currentTime, 'Percent:', percent);
+                    }
+
+                    // === متن اصلی با پشتیبانی از خط جدید ===
+                    if (text) {
+                        const lines = text.split('\n').filter(line => line.trim() !== '');
+                        if (lines.length > 0) {
+                            let baseSize = Math.min(canvas.width, canvas.height) / 8;
+                            const aspectRatio = canvas.width / canvas.height;
+                            if (aspectRatio > 1.8) {
+                                baseSize = canvas.height / (4.2 + (lines.length - 1) * 0.8);
+                            } else if (aspectRatio < 1.1) {
+                                baseSize = canvas.width / (5.5 + (lines.length - 1) * 0.6);
+                            } else {
+                                baseSize = Math.min(canvas.width, canvas.height) / (6.5 + (lines.length - 1) * 0.5);
+                            }
+                            
+                            let fontSize = Math.max(16, baseSize);
+                            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            
+                            let maxLineWidth = 0;
+                            lines.forEach(line => {
+                                const metrics = ctx.measureText(line);
+                                if (metrics.width > maxLineWidth) maxLineWidth = metrics.width;
+                            });
+                            
+                            let maxWidth = canvas.width * 0.92;
+                            let minFontSize = 12;
+                            
+                            while (maxLineWidth > maxWidth && fontSize > minFontSize) {
+                                fontSize -= 1.5;
+                                ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                                maxLineWidth = 0;
+                                lines.forEach(line => {
+                                    const metrics = ctx.measureText(line);
+                                    if (metrics.width > maxLineWidth) maxLineWidth = metrics.width;
+                                });
+                            }
+                            
+                            if (maxLineWidth > maxWidth) {
+                                fontSize = fontSize * (maxWidth / maxLineWidth) * 0.95;
+                                ctx.font = `bold ${fontSize}px ${fontFamily}`;
+                            }
+
+                            const lineHeight = fontSize * 1.4;
+                            const totalHeight = lines.length * lineHeight;
+                            
+                            let startY = canvas.height / 2 + fontSize/3;
+                            const padding = fontSize * 0.5;
+                            
+                            if (currentPos === 'top') {
+                                startY = padding + fontSize/2;
+                            } else if (currentPos === 'bottom') {
+                                startY = canvas.height - padding/2;
+                            }
+                            
+                            if (currentPos === 'center' || currentPos === 'top') {
+                                startY = startY - totalHeight/2 + lineHeight/2;
+                            } else {
+                                startY = startY - totalHeight + lineHeight;
+                            }
+
+                            lines.forEach((line, index) => {
+                                const y = startY + index * lineHeight;
+                                
+                                ctx.strokeStyle = 'black';
+                                ctx.lineWidth = Math.max(6, fontSize / 5);
+                                ctx.strokeText(line, canvas.width/2, y);
+                                
+                                ctx.lineWidth = Math.max(3, fontSize / 8);
+                                ctx.strokeText(line, canvas.width/2, y);
+                                
+                                ctx.fillStyle = 'white';
+                                ctx.fillText(line, canvas.width/2, y);
+                            });
+                        }
+                    }
+
+                    // === واترمارک "@pixelgifbot" با فونت Ubuntu ===
+                    ctx.save();
+                    const wmText = '@pixelgifbot';
+                    let wmSize = Math.max(14, Math.min(canvas.width, canvas.height) / 38);
+                    
+                    // استفاده از فونت Ubuntu
+                    ctx.font = `bold ${wmSize}px 'Ubuntu', sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    const leftMargin = canvas.width * 0.01;
+                    const centerY = canvas.height / 2;
+                    
+                    ctx.translate(leftMargin + wmSize * 0.3, centerY);
+                    ctx.rotate(-Math.PI / 2);
+                    
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = Math.max(2, wmSize / 8);
+                    
+                    ctx.strokeText(wmText, 0, 0);
+                    ctx.fillText(wmText, 0, 0);
+                    
+                    ctx.restore();
+                } catch (err) {
+                    console.error('DrawFrame error:', err);
+                }
+            };
+
+            const interval = setInterval(() => {
+                drawFrame();
+                if (video.ended || video.currentTime >= video.duration - 0.2) {
+                    console.log('Video ended, stopping recorder');
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        recorder.stop();
+                        video.pause();
+                    }, 500);
+                }
+            }, 40);
+        }
+
+        function downloadOutput() {
+            if (!outputBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(outputBlob);
+            a.download = 'video-with-text.webm';
+            a.click();
+        }
+    </script>
+</body>
+</html>
