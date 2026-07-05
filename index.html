@@ -35,66 +35,11 @@
         .download-webm { background: #34d399; color: #0f172a; }
         .download-btn:hover { opacity: 0.8; }
         .download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        /* استایل جدید برای بخش کانال و واترمارک */
-        .info-panel {
-            background: #1e2937;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin: 15px 0;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-        .info-panel .channel-text {
-            color: #fcd34d;
-            font-weight: bold;
-            font-size: 14px;
-            direction: ltr;
-        }
-        .info-panel .watermark-selector {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .info-panel .watermark-selector label {
-            margin: 0;
-            font-size: 14px;
-            color: #bae6fd;
-        }
-        .info-panel .watermark-selector select {
-            background: #0f172a;
-            color: #e0f2fe;
-            border: 1px solid #67e8f9;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 14px;
-            outline: none;
-        }
-        .info-panel .watermark-selector select:focus {
-            border-color: #fcd34d;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎥 پیکسل گیف بات - گیف خودتو بساز !</h1>
-        
-        <!-- پنل جدید: کانال اصلی + انتخاب واترمارک -->
-        <div class="info-panel">
-            <span class="channel-text">📢 کانال اصلی : @pixel_gif داخل روبیکا</span>
-            <div class="watermark-selector">
-                <label for="watermarkSelect">انتخاب واترمارک :</label>
-                <select id="watermarkSelect">
-                    <option value="@pixel_gif">@pixel_gif</option>
-                    <option value="@pixelgifbot" selected>@pixelgifbot</option>
-                </select>
-            </div>
-        </div>
+        <h1> @pixel_gif 🎥 پیکسل گیف بات - گیف خودتو بساز !</h1>
         
         <label>1. انتخاب ویدیو</label>
         <input type="file" id="videoInput" accept="video/*">
@@ -152,11 +97,6 @@
         document.getElementById('videoInput').addEventListener('change', () => {
             document.getElementById('generateBtn').disabled = false;
         });
-
-        // تابع برای دریافت واترمارک انتخاب‌شده
-        function getSelectedWatermark() {
-            return document.getElementById('watermarkSelect').value;
-        }
 
         async function startProcessing() {
             if (processing) return;
@@ -382,9 +322,6 @@
                 let frameCount = 0;
                 startTime = performance.now();
 
-                // دریافت واترمارک انتخاب‌شده
-                const watermarkText = getSelectedWatermark();
-
                 const drawFrame = () => {
                     if (stopRequested || stopped) return;
 
@@ -496,9 +433,9 @@
                             }
                         }
 
-                        // ===== واترمارک با دور سیاه و 40% کمرنگ (با مقدار انتخاب‌شده) =====
+                        // ===== واترمارک با دور سیاه و 40% کمرنگ =====
                         ctx.save();
-                        const wmText = watermarkText;
+                        const wmText = '@pixelgifbot';
                         let wmSize = Math.max(14, Math.min(canvas.width, canvas.height) / 38);
                         
                         ctx.font = `bold ${wmSize}px 'Ubuntu', sans-serif`;
@@ -655,4 +592,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
