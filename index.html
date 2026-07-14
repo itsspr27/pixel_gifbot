@@ -575,338 +575,334 @@
             });
         }
 
-        // ============================================================
-        // تابع دانلود اصلاح شده با پشتیبانی از Telegram Web App
-        // ============================================================
         function downloadOutput() {
-            if (!outputBlob) {
-                alert('ویدیویی برای دانلود وجود ندارد');
-                return;
+    if (!outputBlob) {
+        alert('ویدیویی برای دانلود وجود ندارد');
+        return;
+    }
+
+    // تشخیص اجرا در Telegram Web App
+    const isTelegramWebApp = window.Telegram && window.Telegram.WebApp;
+    const isInsideTelegram = isTelegramWebApp || window.location.href.includes('tgWebApp') || 
+                           (window.navigator.userAgent || '').includes('Telegram');
+
+    console.log(`محیط دانلود: ${isInsideTelegram ? 'Telegram Web App' : 'مرورگر معمولی'}`);
+
+    // اگر در مرورگر معمولی هستیم، همان روش ساده قبلی
+    if (!isInsideTelegram) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(outputBlob);
+        a.download = 'video-with-text.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => {
+            URL.revokeObjectURL(a.href);
+        }, 1000);
+        return;
+    }
+
+    // دانلود در Telegram Web App با چندین روش پشتیبان
+    console.log('تلاش برای دانلود در Telegram Web App با چندین روش...');
+    
+    const methods = [
+        { name: 'روش 1: Blob + anchor', fn: method1_BlobAnchor },
+        { name: 'روش 2: File object', fn: method2_FileObject },
+        { name: 'روش 3: navigator.share()', fn: method3_NavigatorShare },
+        { name: 'روش 4: window.open(blobURL)', fn: method4_WindowOpen },
+        { name: 'روش 5: location.href', fn: method5_LocationHref },
+        { name: 'روش 6: Telegram.WebApp.openLink()', fn: method6_TelegramOpenLink },
+        { name: 'روش 7: Data URL', fn: method7_DataURL },
+        { name: 'روش 8: iframe مخفی', fn: method8_Iframe },
+        { name: 'روش 9: راهکار مدرن مرورگر', fn: method9_ModernWorkaround }
+    ];
+
+    let methodIndex = 0;
+    let success = false;
+
+    function tryNextMethod() {
+        if (methodIndex >= methods.length || success) {
+            if (!success) {
+                console.error('❌ همه روش‌های دانلود در Telegram Web App شکست خوردند');
+                showTelegramDownloadError();
             }
+            return;
+        }
 
-            // تشخیص اجرا در Telegram Web App
-            const isTelegramWebApp = window.Telegram && window.Telegram.WebApp;
-            const isInsideTelegram = isTelegramWebApp || window.location.href.includes('tgWebApp') || 
-                                   (window.navigator.userAgent || '').includes('Telegram');
-
-            console.log(`محیط دانلود: ${isInsideTelegram ? 'Telegram Web App' : 'مرورگر معمولی'}`);
-
-            // اگر در مرورگر معمولی هستیم، همان روش ساده قبلی
-            if (!isInsideTelegram) {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(outputBlob);
-                a.download = 'video-with-text.webm';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => {
-                    URL.revokeObjectURL(a.href);
-                }, 1000);
-                return;
-            }
-
-            // دانلود در Telegram Web App با چندین روش پشتیبان
-            console.log('تلاش برای دانلود در Telegram Web App با چندین روش...');
+        const method = methods[methodIndex];
+        console.log(`🔄 تلاش ${method.name}...`);
+        
+        try {
+            const result = method.fn();
             
-            const methods = [
-                { name: 'روش 1: Blob + anchor', fn: method1_BlobAnchor },
-                { name: 'روش 2: File object', fn: method2_FileObject },
-                { name: 'روش 3: navigator.share()', fn: method3_NavigatorShare },
-                { name: 'روش 4: window.open(blobURL)', fn: method4_WindowOpen },
-                { name: 'روش 5: location.href', fn: method5_LocationHref },
-                { name: 'روش 6: Telegram.WebApp.openLink()', fn: method6_TelegramOpenLink },
-                { name: 'روش 7: Data URL', fn: method7_DataURL },
-                { name: 'روش 8: iframe مخفی', fn: method8_Iframe },
-                { name: 'روش 9: راهکار مدرن مرورگر', fn: method9_ModernWorkaround }
-            ];
-
-            let methodIndex = 0;
-            let success = false;
-
-            function tryNextMethod() {
-                if (methodIndex >= methods.length || success) {
-                    if (!success) {
-                        // همه روش‌ها شکست خوردند
-                        console.error('❌ همه روش‌های دانلود در Telegram Web App شکست خوردند');
-                        showTelegramDownloadError();
-                    }
-                    return;
-                }
-
-                const method = methods[methodIndex];
-                console.log(`🔄 تلاش ${method.name}...`);
-                
-                try {
-                    const result = method.fn();
-                    
-                    if (result instanceof Promise) {
-                        result.then(() => {
-                            console.log(`✅ ${method.name} موفقیت‌آمیز بود`);
-                            success = true;
-                        }).catch(() => {
-                            console.warn(`❌ ${method.name} شکست خورد`);
-                            methodIndex++;
-                            setTimeout(tryNextMethod, 200);
-                        });
-                    } else if (result !== false) {
-                        console.log(`✅ ${method.name} موفقیت‌آمیز بود`);
-                        success = true;
-                    } else {
-                        console.warn(`❌ ${method.name} شکست خورد`);
-                        methodIndex++;
-                        setTimeout(tryNextMethod, 200);
-                    }
-                } catch (e) {
-                    console.warn(`❌ ${method.name} با خطا مواجه شد:`, e);
+            if (result instanceof Promise) {
+                result.then(() => {
+                    console.log(`✅ ${method.name} موفقیت‌آمیز بود`);
+                    success = true;
+                }).catch(() => {
+                    console.warn(`❌ ${method.name} شکست خورد`);
                     methodIndex++;
                     setTimeout(tryNextMethod, 200);
-                }
+                });
+            } else if (result !== false) {
+                console.log(`✅ ${method.name} موفقیت‌آمیز بود`);
+                success = true;
+            } else {
+                console.warn(`❌ ${method.name} شکست خورد`);
+                methodIndex++;
+                setTimeout(tryNextMethod, 200);
             }
-
-            // پیاده‌سازی روش‌ها
-            function method1_BlobAnchor() {
-                try {
-                    const a = document.createElement('a');
-                    const url = URL.createObjectURL(outputBlob);
-                    a.href = url;
-                    a.download = 'video-with-text.webm';
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 500);
-                    
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 1:', e);
-                    return false;
-                }
-            }
-
-            function method2_FileObject() {
-                try {
-                    const file = new File([outputBlob], 'video-with-text.webm', { type: 'video/webm' });
-                    const a = document.createElement('a');
-                    const url = URL.createObjectURL(file);
-                    a.href = url;
-                    a.download = file.name;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 500);
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 2:', e);
-                    return false;
-                }
-            }
-
-            function method3_NavigatorShare() {
-                if (!navigator.share) {
-                    console.warn('navigator.share() پشتیبانی نمی‌شود');
-                    return false;
-                }
-
-                try {
-                    const file = new File([outputBlob], 'video-with-text.webm', { type: 'video/webm' });
-                    return navigator.share({
-                        title: 'ویدیو با متن',
-                        files: [file]
-                    }).then(() => true).catch(() => false);
-                } catch (e) {
-                    console.warn('خطای روش 3:', e);
-                    return false;
-                }
-            }
-
-            function method4_WindowOpen() {
-                try {
-                    const url = URL.createObjectURL(outputBlob);
-                    const win = window.open(url, '_blank');
-                    if (win) {
-                        setTimeout(() => {
-                            URL.revokeObjectURL(url);
-                        }, 1000);
-                        return true;
-                    } else {
-                        URL.revokeObjectURL(url);
-                        return false;
-                    }
-                } catch (e) {
-                    console.warn('خطای روش 4:', e);
-                    return false;
-                }
-            }
-
-            function method5_LocationHref() {
-                try {
-                    const url = URL.createObjectURL(outputBlob);
-                    const currentLocation = window.location.href;
-                    window.location.href = url;
-                    
-                    setTimeout(() => {
-                        URL.revokeObjectURL(url);
-                        if (window.location.href === url) {
-                            window.location.href = currentLocation;
-                            console.warn('روش location.href دانلود را فعال نکرد');
-                        }
-                    }, 500);
-                    
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 5:', e);
-                    return false;
-                }
-            }
-
-            function method6_TelegramOpenLink() {
-                if (!window.Telegram || !window.Telegram.WebApp || typeof window.Telegram.WebApp.openLink !== 'function') {
-                    console.warn('Telegram.WebApp.openLink() در دسترس نیست');
-                    return false;
-                }
-
-                try {
-                    const url = URL.createObjectURL(outputBlob);
-                    window.Telegram.WebApp.openLink(url);
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 6:', e);
-                    return false;
-                }
-            }
-
-            function method7_DataURL() {
-                try {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            const dataUrl = e.target.result;
-                            const a = document.createElement('a');
-                            a.href = dataUrl;
-                            a.download = 'video-with-text.webm';
-                            document.body.appendChild(a);
-                            a.click();
-                            setTimeout(() => {
-                                document.body.removeChild(a);
-                            }, 500);
-                        } catch (err) {
-                            console.warn('خطای دانلود Data URL:', err);
-                        }
-                    };
-                    reader.readAsDataURL(outputBlob);
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 7:', e);
-                    return false;
-                }
-            }
-
-            function method8_Iframe() {
-                try {
-                    const url = URL.createObjectURL(outputBlob);
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url;
-                    document.body.appendChild(iframe);
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        URL.revokeObjectURL(url);
-                        
-                        try {
-                            const doc = iframe.contentDocument || iframe.contentWindow.document;
-                            const a = doc.createElement('a');
-                            a.href = url;
-                            a.download = 'video-with-text.webm';
-                            doc.body.appendChild(a);
-                            a.click();
-                            setTimeout(() => {
-                                doc.body.removeChild(a);
-                            }, 500);
-                        } catch (e) {
-                            console.warn('خطای دانلود iframe:', e);
-                        }
-                    }, 500);
-                    
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 8:', e);
-                    return false;
-                }
-            }
-
-            function method9_ModernWorkaround() {
-                try {
-                    const url = URL.createObjectURL(outputBlob);
-                    
-                    fetch(url)
-                        .then(response => response.blob())
-                        .then(blob => {
-                            const a = document.createElement('a');
-                            const newUrl = URL.createObjectURL(blob);
-                            a.href = newUrl;
-                            a.download = 'video-with-text.webm';
-                            document.body.appendChild(a);
-                            a.click();
-                            setTimeout(() => {
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(newUrl);
-                            }, 500);
-                        })
-                        .catch(err => {
-                            console.warn('خطای روش 9 fetch:', err);
-                            if (navigator.msSaveOrOpenBlob) {
-                                try {
-                                    navigator.msSaveOrOpenBlob(outputBlob, 'video-with-text.webm');
-                                    return true;
-                                } catch (e) {}
-                            }
-                            return false;
-                        });
-                    
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    return true;
-                } catch (e) {
-                    console.warn('خطای روش 9:', e);
-                    return false;
-                }
-            }
-
-            function showTelegramDownloadError() {
-                const message = "Telegram WebView اجازه دانلود فایل‌های ساخته شده محلی را در این دستگاه نمی‌دهد.\n\n" +
-                               "راه‌های جایگزین:\n" +
-                               "1. از دکمه اشتراک‌گذاری در تلگرام استفاده کنید\n" +
-                               "2. ویدیو را در Saved Messages تلگرام ذخیره کنید\n" +
-                               "3. ویدیو را در مرورگر باز کرده و از آنجا دانلود کنید";
-                
-                console.error('❌ ' + message);
-                alert(message);
-                
-                // آخرین تلاش: دوباره ساده‌ترین روش را امتحان کن
-                try {
-                    const a = document.createElement('a');
-                    const url = URL.createObjectURL(outputBlob);
-                    a.href = url;
-                    a.download = 'video-with-text.webm';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 500);
-                } catch (e) {
-                    console.error('آخرین تلاش پشتیبان شکست خورد:', e);
-                }
-            }
-
-            // شروع فرآیند
-            tryNextMethod();
+        } catch (e) {
+            console.warn(`❌ ${method.name} با خطا مواجه شد:`, e);
+            methodIndex++;
+            setTimeout(tryNextMethod, 200);
         }
+    }
+
+    // پیاده‌سازی روش‌ها
+    function method1_BlobAnchor() {
+        try {
+            const a = document.createElement('a');
+            const url = URL.createObjectURL(outputBlob);
+            a.href = url;
+            a.download = 'video-with-text.webm';
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 500);
+            
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 1:', e);
+            return false;
+        }
+    }
+
+    function method2_FileObject() {
+        try {
+            const file = new File([outputBlob], 'video-with-text.webm', { type: 'video/webm' });
+            const a = document.createElement('a');
+            const url = URL.createObjectURL(file);
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 500);
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 2:', e);
+            return false;
+        }
+    }
+
+    function method3_NavigatorShare() {
+        if (!navigator.share) {
+            console.warn('navigator.share() پشتیبانی نمی‌شود');
+            return false;
+        }
+
+        try {
+            const file = new File([outputBlob], 'video-with-text.webm', { type: 'video/webm' });
+            return navigator.share({
+                title: 'ویدیو با متن',
+                files: [file]
+            }).then(() => true).catch(() => false);
+        } catch (e) {
+            console.warn('خطای روش 3:', e);
+            return false;
+        }
+    }
+
+    function method4_WindowOpen() {
+        try {
+            const url = URL.createObjectURL(outputBlob);
+            const win = window.open(url, '_blank');
+            if (win) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                }, 1000);
+                return true;
+            } else {
+                URL.revokeObjectURL(url);
+                return false;
+            }
+        } catch (e) {
+            console.warn('خطای روش 4:', e);
+            return false;
+        }
+    }
+
+    function method5_LocationHref() {
+        try {
+            const url = URL.createObjectURL(outputBlob);
+            const currentLocation = window.location.href;
+            window.location.href = url;
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                if (window.location.href === url) {
+                    window.location.href = currentLocation;
+                    console.warn('روش location.href دانلود را فعال نکرد');
+                }
+            }, 500);
+            
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 5:', e);
+            return false;
+        }
+    }
+
+    function method6_TelegramOpenLink() {
+        if (!window.Telegram || !window.Telegram.WebApp || typeof window.Telegram.WebApp.openLink !== 'function') {
+            console.warn('Telegram.WebApp.openLink() در دسترس نیست');
+            return false;
+        }
+
+        try {
+            const url = URL.createObjectURL(outputBlob);
+            window.Telegram.WebApp.openLink(url);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 6:', e);
+            return false;
+        }
+    }
+
+    function method7_DataURL() {
+        try {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dataUrl = e.target.result;
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = 'video-with-text.webm';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                    }, 500);
+                } catch (err) {
+                    console.warn('خطای دانلود Data URL:', err);
+                }
+            };
+            reader.readAsDataURL(outputBlob);
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 7:', e);
+            return false;
+        }
+    }
+
+    function method8_Iframe() {
+        try {
+            const url = URL.createObjectURL(outputBlob);
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = url;
+            document.body.appendChild(iframe);
+            
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+                URL.revokeObjectURL(url);
+                
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    const a = doc.createElement('a');
+                    a.href = url;
+                    a.download = 'video-with-text.webm';
+                    doc.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        doc.body.removeChild(a);
+                    }, 500);
+                } catch (e) {
+                    console.warn('خطای دانلود iframe:', e);
+                }
+            }, 500);
+            
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 8:', e);
+            return false;
+        }
+    }
+
+    function method9_ModernWorkaround() {
+        try {
+            const url = URL.createObjectURL(outputBlob);
+            
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const a = document.createElement('a');
+                    const newUrl = URL.createObjectURL(blob);
+                    a.href = newUrl;
+                    a.download = 'video-with-text.webm';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(newUrl);
+                    }, 500);
+                })
+                .catch(err => {
+                    console.warn('خطای روش 9 fetch:', err);
+                    if (navigator.msSaveOrOpenBlob) {
+                        try {
+                            navigator.msSaveOrOpenBlob(outputBlob, 'video-with-text.webm');
+                            return true;
+                        } catch (e) {}
+                    }
+                    return false;
+                });
+            
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            return true;
+        } catch (e) {
+            console.warn('خطای روش 9:', e);
+            return false;
+        }
+    }
+
+    function showTelegramDownloadError() {
+        const message = "Telegram WebView اجازه دانلود فایل‌های ساخته شده محلی را در این دستگاه نمی‌دهد.\n\n" +
+                       "راه‌های جایگزین:\n" +
+                       "1. از دکمه اشتراک‌گذاری در تلگرام استفاده کنید\n" +
+                       "2. ویدیو را در Saved Messages تلگرام ذخیره کنید\n" +
+                       "3. ویدیو را در مرورگر باز کرده و از آنجا دانلود کنید";
+        
+        console.error('❌ ' + message);
+        alert(message);
+        
+        // آخرین تلاش: دوباره ساده‌ترین روش را امتحان کن
+        try {
+            const a = document.createElement('a');
+            const url = URL.createObjectURL(outputBlob);
+            a.href = url;
+            a.download = 'video-with-text.webm';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 500);
+        } catch (e) {
+            console.error('آخرین تلاش پشتیبان شکست خورد:', e);
+        }
+    }
+
+    // شروع فرآیند
+    tryNextMethod();
+}
     </script>
 </body>
-    </html>
+</html>
