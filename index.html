@@ -576,314 +576,667 @@
         }
 
         function downloadOutput() {
+    console.log("=== DOWNLOAD FUNCTION STARTED ===");
+    
+    // Step 1: Verify outputBlob exists
+    console.log("Step 1: Checking outputBlob...");
     if (!outputBlob) {
+        console.error("❌ Step 1 FAILED: outputBlob is null or undefined");
         alert('ویدیویی برای دانلود وجود ندارد');
         return;
     }
-
-    // تشخیص اجرا در Telegram Web App
-    const isTelegramWebApp = window.Telegram && window.Telegram.WebApp;
-    const isInsideTelegram = isTelegramWebApp || window.location.href.includes('tgWebApp') || 
-                           (window.navigator.userAgent || '').includes('Telegram');
-
-    console.log(`محیط دانلود: ${isInsideTelegram ? 'Telegram Web App' : 'مرورگر معمولی'}`);
-
-    // اگر در مرورگر معمولی هستیم، همان روش ساده قبلی
-    if (!isInsideTelegram) {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(outputBlob);
-        a.download = 'video-with-text.webm';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => {
-            URL.revokeObjectURL(a.href);
-        }, 1000);
+    console.log("✅ Step 1 PASSED: outputBlob exists");
+    
+    // Step 2: Verify outputBlob properties
+    console.log("Step 2: Checking outputBlob properties...");
+    console.log(`  - outputBlob.size: ${outputBlob.size} bytes (${(outputBlob.size / 1024 / 1024).toFixed(2)} MB)`);
+    console.log(`  - outputBlob.type: "${outputBlob.type}"`);
+    console.log(`  - outputBlob.constructor: ${outputBlob.constructor.name}`);
+    
+    if (outputBlob.size === 0) {
+        console.error("❌ Step 2 FAILED: outputBlob.size is 0");
+        alert('فایل خروجی خالی است');
         return;
     }
-
-    // دانلود در Telegram Web App با چندین روش پشتیبان
-    console.log('تلاش برای دانلود در Telegram Web App با چندین روش...');
+    if (!outputBlob.type || !outputBlob.type.includes('webm')) {
+        console.warn("⚠️ Step 2 WARNING: outputBlob.type is not 'video/webm'");
+    } else {
+        console.log("✅ Step 2 PASSED: outputBlob has valid properties");
+    }
+    
+    // Step 3: Detect environment
+    console.log("Step 3: Detecting environment...");
+    const hasTelegram = !!(window.Telegram && window.Telegram.WebApp);
+    const hasTelegramWebApp = hasTelegram && typeof window.Telegram.WebApp === 'object';
+    const hasOpenLink = hasTelegramWebApp && typeof window.Telegram.WebApp.openLink === 'function';
+    const urlHasTgWebApp = window.location.href.includes('tgWebApp');
+    const userAgent = window.navigator.userAgent || '';
+    const isTelegramUA = userAgent.includes('Telegram');
+    const isInsideTelegram = hasTelegramWebApp || urlHasTgWebApp || isTelegramUA;
+    
+    console.log(`  - window.Telegram exists: ${!!window.Telegram}`);
+    console.log(`  - window.Telegram.WebApp exists: ${hasTelegramWebApp}`);
+    console.log(`  - Telegram.WebApp.openLink exists: ${hasOpenLink}`);
+    console.log(`  - URL includes 'tgWebApp': ${urlHasTgWebApp}`);
+    console.log(`  - UserAgent includes 'Telegram': ${isTelegramUA}`);
+    console.log(`  - Is inside Telegram: ${isInsideTelegram}`);
+    
+    // Step 4: Check document.body
+    console.log("Step 4: Checking document.body...");
+    if (!document.body) {
+        console.error("❌ Step 4 FAILED: document.body does not exist");
+        alert('مشکل در ساختار صفحه');
+        return;
+    }
+    console.log("✅ Step 4 PASSED: document.body exists");
+    
+    // Step 5: Try to create Blob URL
+    console.log("Step 5: Creating Blob URL...");
+    let blobUrl = null;
+    try {
+        blobUrl = URL.createObjectURL(outputBlob);
+        console.log(`  - Blob URL created: ${blobUrl.substring(0, 50)}...`);
+        console.log(`  - Blob URL length: ${blobUrl.length}`);
+        console.log("✅ Step 5 PASSED: Blob URL created successfully");
+    } catch (e) {
+        console.error("❌ Step 5 FAILED: URL.createObjectURL threw error:", e);
+        console.error(`  - Error name: ${e.name}`);
+        console.error(`  - Error message: ${e.message}`);
+        alert('خطا در ساخت لینک دانلود: ' + e.message);
+        return;
+    }
+    
+    // If not in Telegram, use simple download
+    if (!isInsideTelegram) {
+        console.log("ℹ️ Not in Telegram, using standard browser download...");
+        try {
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = 'video-with-text.webm';
+            document.body.appendChild(a);
+            console.log("  - Anchor element created and appended");
+            a.click();
+            console.log("  - Click triggered");
+            document.body.removeChild(a);
+            console.log("  - Anchor element removed");
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+                console.log("  - Blob URL revoked");
+            }, 1000);
+            console.log("✅ Browser download completed");
+        } catch (e) {
+            console.error("❌ Browser download failed:", e);
+            alert('خطا در دانلود: ' + e.message);
+        }
+        return;
+    }
+    
+    // === TELEGRAM WEB APP DOWNLOAD METHODS ===
+    console.log("=== STARTING TELEGRAM WEB APP DOWNLOAD METHODS ===");
+    console.log(`Total methods to try: 9`);
     
     const methods = [
-        { name: 'روش 1: Blob + anchor', fn: method1_BlobAnchor },
-        { name: 'روش 2: File object', fn: method2_FileObject },
-        { name: 'روش 3: navigator.share()', fn: method3_NavigatorShare },
-        { name: 'روش 4: window.open(blobURL)', fn: method4_WindowOpen },
-        { name: 'روش 5: location.href', fn: method5_LocationHref },
-        { name: 'روش 6: Telegram.WebApp.openLink()', fn: method6_TelegramOpenLink },
-        { name: 'روش 7: Data URL', fn: method7_DataURL },
-        { name: 'روش 8: iframe مخفی', fn: method8_Iframe },
-        { name: 'روش 9: راهکار مدرن مرورگر', fn: method9_ModernWorkaround }
+        { 
+            name: 'Method 1: Blob + anchor (injected)',
+            fn: method1_BlobAnchor,
+            description: 'Standard anchor download with Blob URL'
+        },
+        { 
+            name: 'Method 2: File object',
+            fn: method2_FileObject,
+            description: 'Convert to File object then download'
+        },
+        { 
+            name: 'Method 3: navigator.share()',
+            fn: method3_NavigatorShare,
+            description: 'Use Web Share API'
+        },
+        { 
+            name: 'Method 4: window.open(blobURL)',
+            fn: method4_WindowOpen,
+            description: 'Open blob URL in new tab'
+        },
+        { 
+            name: 'Method 5: location.href',
+            fn: method5_LocationHref,
+            description: 'Navigate to blob URL directly'
+        },
+        { 
+            name: 'Method 6: Telegram.WebApp.openLink()',
+            fn: method6_TelegramOpenLink,
+            description: 'Telegram\'s openLink API'
+        },
+        { 
+            name: 'Method 7: Data URL',
+            fn: method7_DataURL,
+            description: 'Convert blob to Data URL'
+        },
+        { 
+            name: 'Method 8: Invisible iframe',
+            fn: method8_Iframe,
+            description: 'Use hidden iframe to trigger download'
+        },
+        { 
+            name: 'Method 9: File System Access API',
+            fn: method9_FileSystemAccess,
+            description: 'Modern File System Access API'
+        }
     ];
-
-    let methodIndex = 0;
-    let success = false;
-
+    
+    let currentMethodIndex = 0;
+    let downloadSuccessful = false;
+    let failures = [];
+    
     function tryNextMethod() {
-        if (methodIndex >= methods.length || success) {
-            if (!success) {
-                console.error('❌ همه روش‌های دانلود در Telegram Web App شکست خوردند');
-                showTelegramDownloadError();
+        if (currentMethodIndex >= methods.length || downloadSuccessful) {
+            if (!downloadSuccessful) {
+                console.error("❌ ALL METHODS FAILED!");
+                console.error("Failure summary:");
+                failures.forEach((f, i) => {
+                    console.error(`  ${i+1}. ${f}`);
+                });
+                showFinalError();
             }
             return;
         }
-
-        const method = methods[methodIndex];
-        console.log(`🔄 تلاش ${method.name}...`);
+        
+        const method = methods[currentMethodIndex];
+        console.log(`\n🔄 ${method.name} - ${method.description}`);
+        console.log(`  Attempt ${currentMethodIndex + 1} of ${methods.length}`);
         
         try {
             const result = method.fn();
             
             if (result instanceof Promise) {
-                result.then(() => {
-                    console.log(`✅ ${method.name} موفقیت‌آمیز بود`);
-                    success = true;
-                }).catch(() => {
-                    console.warn(`❌ ${method.name} شکست خورد`);
-                    methodIndex++;
-                    setTimeout(tryNextMethod, 200);
-                });
-            } else if (result !== false) {
-                console.log(`✅ ${method.name} موفقیت‌آمیز بود`);
-                success = true;
+                result
+                    .then((success) => {
+                        if (success) {
+                            console.log(`✅ ${method.name} SUCCEEDED!`);
+                            downloadSuccessful = true;
+                        } else {
+                            console.warn(`❌ ${method.name} FAILED (returned false)`);
+                            failures.push(`${method.name}: Returned false`);
+                            currentMethodIndex++;
+                            setTimeout(tryNextMethod, 300);
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(`❌ ${method.name} FAILED with error:`, err);
+                        failures.push(`${method.name}: ${err.message || 'Unknown error'}`);
+                        currentMethodIndex++;
+                        setTimeout(tryNextMethod, 300);
+                    });
+            } else if (result === true) {
+                console.log(`✅ ${method.name} SUCCEEDED!`);
+                downloadSuccessful = true;
+            } else if (result === false) {
+                console.warn(`❌ ${method.name} FAILED (returned false)`);
+                failures.push(`${method.name}: Returned false`);
+                currentMethodIndex++;
+                setTimeout(tryNextMethod, 300);
             } else {
-                console.warn(`❌ ${method.name} شکست خورد`);
-                methodIndex++;
-                setTimeout(tryNextMethod, 200);
+                console.warn(`⚠️ ${method.name} returned unknown result:`, result);
+                failures.push(`${method.name}: Returned ${typeof result}`);
+                currentMethodIndex++;
+                setTimeout(tryNextMethod, 300);
             }
         } catch (e) {
-            console.warn(`❌ ${method.name} با خطا مواجه شد:`, e);
-            methodIndex++;
-            setTimeout(tryNextMethod, 200);
+            console.error(`❌ ${method.name} THREW ERROR:`, e);
+            failures.push(`${method.name}: ${e.name} - ${e.message}`);
+            currentMethodIndex++;
+            setTimeout(tryNextMethod, 300);
         }
     }
-
-    // پیاده‌سازی روش‌ها
+    
+    // === METHOD IMPLEMENTATIONS ===
+    
     function method1_BlobAnchor() {
+        console.log("  Creating anchor element...");
         try {
             const a = document.createElement('a');
+            console.log("  - Anchor created");
+            
             const url = URL.createObjectURL(outputBlob);
+            console.log(`  - New Blob URL created: ${url.substring(0, 50)}...`);
+            
             a.href = url;
             a.download = 'video-with-text.webm';
+            console.log(`  - href set to ${url.substring(0, 30)}...`);
+            console.log(`  - download attribute set to "video-with-text.webm"`);
+            
             document.body.appendChild(a);
+            console.log("  - Anchor appended to body");
+            
+            console.log("  - Calling a.click()...");
             a.click();
+            console.log("  - a.click() executed");
             
             setTimeout(() => {
                 document.body.removeChild(a);
+                console.log("  - Anchor removed from body");
                 URL.revokeObjectURL(url);
-            }, 500);
+                console.log("  - Blob URL revoked");
+            }, 1000);
             
+            console.log("  ✅ Method 1 completed without errors");
             return true;
         } catch (e) {
-            console.warn('خطای روش 1:', e);
+            console.error("  ❌ Method 1 error:", e);
+            console.error(`  - Error name: ${e.name}`);
+            console.error(`  - Error message: ${e.message}`);
             return false;
         }
     }
-
+    
     function method2_FileObject() {
+        console.log("  Creating File object...");
         try {
-            const file = new File([outputBlob], 'video-with-text.webm', { type: 'video/webm' });
-            const a = document.createElement('a');
+            const fileName = 'video-with-text.webm';
+            console.log(`  - File name: ${fileName}`);
+            console.log(`  - outputBlob.size: ${outputBlob.size}`);
+            
+            const file = new File([outputBlob], fileName, { 
+                type: outputBlob.type || 'video/webm' 
+            });
+            console.log(`  - File object created`);
+            console.log(`  - File.size: ${file.size}`);
+            console.log(`  - File.type: ${file.type}`);
+            console.log(`  - File.name: ${file.name}`);
+            
             const url = URL.createObjectURL(file);
+            console.log(`  - Blob URL created from File: ${url.substring(0, 50)}...`);
+            
+            const a = document.createElement('a');
             a.href = url;
             a.download = file.name;
+            console.log("  - Anchor created and configured");
+            
             document.body.appendChild(a);
+            console.log("  - Anchor appended to body");
+            
             a.click();
+            console.log("  - a.click() executed");
+            
             setTimeout(() => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-            }, 500);
+                console.log("  - Cleanup completed");
+            }, 1000);
+            
+            console.log("  ✅ Method 2 completed without errors");
             return true;
         } catch (e) {
-            console.warn('خطای روش 2:', e);
+            console.error("  ❌ Method 2 error:", e);
+            console.error(`  - Error name: ${e.name}`);
+            console.error(`  - Error message: ${e.message}`);
             return false;
         }
     }
-
+    
     function method3_NavigatorShare() {
+        console.log("  Checking navigator.share...");
         if (!navigator.share) {
-            console.warn('navigator.share() پشتیبانی نمی‌شود');
+            console.warn("  ❌ navigator.share is not available");
             return false;
         }
-
+        console.log("  ✅ navigator.share is available");
+        
+        if (navigator.canShare) {
+            console.log("  Checking if file can be shared...");
+            try {
+                const file = new File([outputBlob], 'video-with-text.webm', { 
+                    type: outputBlob.type || 'video/webm' 
+                });
+                const shareData = {
+                    title: 'ویدیو با متن',
+                    files: [file]
+                };
+                const canShare = navigator.canShare(shareData);
+                console.log(`  - navigator.canShare() returned: ${canShare}`);
+                if (!canShare) {
+                    console.warn("  ⚠️ navigator.canShare says file cannot be shared");
+                    // Continue anyway, canShare might be wrong
+                }
+            } catch (e) {
+                console.warn("  - navigator.canShare check failed:", e);
+            }
+        }
+        
+        console.log("  Attempting navigator.share()...");
         try {
-            const file = new File([outputBlob], 'video-with-text.webm', { type: 'video/webm' });
+            const file = new File([outputBlob], 'video-with-text.webm', { 
+                type: outputBlob.type || 'video/webm' 
+            });
+            console.log(`  - File created for sharing: ${file.name} (${file.size} bytes)`);
+            
             return navigator.share({
                 title: 'ویدیو با متن',
                 files: [file]
-            }).then(() => true).catch(() => false);
+            })
+            .then(() => {
+                console.log("  ✅ navigator.share() succeeded");
+                return true;
+            })
+            .catch((err) => {
+                console.warn("  ❌ navigator.share() failed:", err);
+                console.warn(`  - Error: ${err.name} - ${err.message}`);
+                if (err.name === 'AbortError') {
+                    console.log("  - User cancelled share");
+                }
+                return false;
+            });
         } catch (e) {
-            console.warn('خطای روش 3:', e);
+            console.error("  ❌ navigator.share() threw error:", e);
             return false;
         }
     }
-
+    
     function method4_WindowOpen() {
+        console.log("  Attempting window.open...");
         try {
             const url = URL.createObjectURL(outputBlob);
+            console.log(`  - Blob URL: ${url.substring(0, 50)}...`);
+            
             const win = window.open(url, '_blank');
+            console.log(`  - window.open returned: ${win ? 'window object' : 'null'}`);
+            
             if (win) {
+                console.log("  - Window opened successfully");
                 setTimeout(() => {
                     URL.revokeObjectURL(url);
-                }, 1000);
+                    console.log("  - Blob URL revoked");
+                    try {
+                        if (win.closed) {
+                            console.log("  - Window was closed");
+                        } else {
+                            console.log("  - Window is still open");
+                        }
+                    } catch (e) {
+                        console.log("  - Could not check window status");
+                    }
+                }, 1500);
                 return true;
             } else {
+                console.warn("  - window.open returned null (popup blocked?)");
                 URL.revokeObjectURL(url);
                 return false;
             }
         } catch (e) {
-            console.warn('خطای روش 4:', e);
+            console.error("  ❌ window.open error:", e);
             return false;
         }
     }
-
+    
     function method5_LocationHref() {
+        console.log("  Attempting location.href...");
         try {
             const url = URL.createObjectURL(outputBlob);
+            console.log(`  - Blob URL: ${url.substring(0, 50)}...`);
+            console.log(`  - Current location: ${window.location.href}`);
+            
             const currentLocation = window.location.href;
             window.location.href = url;
+            console.log("  - location.href changed");
             
             setTimeout(() => {
-                URL.revokeObjectURL(url);
+                console.log(`  - Checking if location changed...`);
                 if (window.location.href === url) {
+                    console.warn("  - Location is still at blob URL (download didn't trigger navigation)");
                     window.location.href = currentLocation;
-                    console.warn('روش location.href دانلود را فعال نکرد');
+                    console.log(`  - Restored to: ${currentLocation}`);
+                } else {
+                    console.log("  - Location changed away from blob URL");
                 }
+                URL.revokeObjectURL(url);
+                console.log("  - Blob URL revoked");
             }, 500);
             
             return true;
         } catch (e) {
-            console.warn('خطای روش 5:', e);
+            console.error("  ❌ location.href error:", e);
             return false;
         }
     }
-
+    
     function method6_TelegramOpenLink() {
-        if (!window.Telegram || !window.Telegram.WebApp || typeof window.Telegram.WebApp.openLink !== 'function') {
-            console.warn('Telegram.WebApp.openLink() در دسترس نیست');
+        console.log("  Checking Telegram.WebApp.openLink...");
+        if (!hasOpenLink) {
+            console.warn("  ❌ Telegram.WebApp.openLink not available");
+            console.log(`  - window.Telegram exists: ${!!window.Telegram}`);
+            console.log(`  - window.Telegram.WebApp exists: ${!!(window.Telegram && window.Telegram.WebApp)}`);
+            if (window.Telegram && window.Telegram.WebApp) {
+                console.log(`  - openLink type: ${typeof window.Telegram.WebApp.openLink}`);
+            }
             return false;
         }
-
+        console.log("  ✅ Telegram.WebApp.openLink is available");
+        
         try {
             const url = URL.createObjectURL(outputBlob);
+            console.log(`  - Blob URL: ${url.substring(0, 50)}...`);
+            console.log("  - Calling Telegram.WebApp.openLink()...");
+            
             window.Telegram.WebApp.openLink(url);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            console.log("  - openLink() executed");
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+                console.log("  - Blob URL revoked");
+            }, 1000);
+            
             return true;
         } catch (e) {
-            console.warn('خطای روش 6:', e);
+            console.error("  ❌ Telegram.WebApp.openLink error:", e);
             return false;
         }
     }
-
+    
     function method7_DataURL() {
+        console.log("  Attempting Data URL conversion...");
+        console.log(`  - outputBlob.size: ${outputBlob.size} bytes`);
+        console.log("  - Reading blob as Data URL...");
+        
         try {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const dataUrl = e.target.result;
-                    const a = document.createElement('a');
-                    a.href = dataUrl;
-                    a.download = 'video-with-text.webm';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                    }, 500);
-                } catch (err) {
-                    console.warn('خطای دانلود Data URL:', err);
-                }
-            };
-            reader.readAsDataURL(outputBlob);
-            return true;
+            console.log("  - FileReader created");
+            
+            return new Promise((resolve) => {
+                reader.onload = function(e) {
+                    try {
+                        console.log("  - FileReader loaded");
+                        const dataUrl = e.target.result;
+                        console.log(`  - Data URL length: ${dataUrl.length}`);
+                        console.log(`  - Data URL type: ${dataUrl.substring(0, 50)}...`);
+                        
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = 'video-with-text.webm';
+                        console.log("  - Anchor created with Data URL");
+                        
+                        document.body.appendChild(a);
+                        console.log("  - Anchor appended");
+                        
+                        a.click();
+                        console.log("  - a.click() executed");
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            console.log("  - Anchor removed");
+                            resolve(true);
+                        }, 1000);
+                    } catch (err) {
+                        console.error("  ❌ Data URL download error:", err);
+                        resolve(false);
+                    }
+                };
+                
+                reader.onerror = function(e) {
+                    console.error("  ❌ FileReader error:", e);
+                    console.error(`  - Error: ${e.target.error}`);
+                    resolve(false);
+                };
+                
+                reader.readAsDataURL(outputBlob);
+                console.log("  - readAsDataURL started");
+            });
         } catch (e) {
-            console.warn('خطای روش 7:', e);
+            console.error("  ❌ Data URL method error:", e);
             return false;
         }
     }
-
+    
     function method8_Iframe() {
+        console.log("  Attempting iframe method...");
         try {
             const url = URL.createObjectURL(outputBlob);
+            console.log(`  - Blob URL: ${url.substring(0, 50)}...`);
+            
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.src = url;
+            console.log("  - Iframe created with blob URL");
+            
             document.body.appendChild(iframe);
+            console.log("  - Iframe appended to body");
             
             setTimeout(() => {
                 document.body.removeChild(iframe);
+                console.log("  - Iframe removed");
                 URL.revokeObjectURL(url);
+                console.log("  - Blob URL revoked");
                 
+                // Try to trigger download from iframe
                 try {
+                    console.log("  - Attempting to trigger download from iframe...");
                     const doc = iframe.contentDocument || iframe.contentWindow.document;
-                    const a = doc.createElement('a');
-                    a.href = url;
-                    a.download = 'video-with-text.webm';
-                    doc.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        doc.body.removeChild(a);
-                    }, 500);
+                    if (doc) {
+                        console.log("  - iframe document accessible");
+                        const a = doc.createElement('a');
+                        a.href = url;
+                        a.download = 'video-with-text.webm';
+                        doc.body.appendChild(a);
+                        a.click();
+                        console.log("  - Download triggered from iframe");
+                        setTimeout(() => {
+                            doc.body.removeChild(a);
+                            console.log("  - Anchor removed from iframe");
+                        }, 500);
+                    } else {
+                        console.warn("  - Could not access iframe document");
+                    }
                 } catch (e) {
-                    console.warn('خطای دانلود iframe:', e);
+                    console.warn("  - iframe download failed:", e);
                 }
             }, 500);
             
             return true;
         } catch (e) {
-            console.warn('خطای روش 8:', e);
+            console.error("  ❌ iframe method error:", e);
             return false;
         }
     }
-
-    function method9_ModernWorkaround() {
+    
+    function method9_FileSystemAccess() {
+        console.log("  Attempting File System Access API...");
+        
+        // Check for File System Access API
+        if (!window.showDirectoryPicker && !window.showSaveFilePicker) {
+            console.warn("  ❌ File System Access API not supported");
+            console.log("  - window.showSaveFilePicker exists: ${!!window.showSaveFilePicker}");
+            console.log("  - window.showDirectoryPicker exists: ${!!window.showDirectoryPicker}");
+            return false;
+        }
+        
+        console.log("  ✅ File System Access API available");
+        
         try {
-            const url = URL.createObjectURL(outputBlob);
-            
-            fetch(url)
-                .then(response => response.blob())
-                .then(blob => {
-                    const a = document.createElement('a');
-                    const newUrl = URL.createObjectURL(blob);
-                    a.href = newUrl;
-                    a.download = 'video-with-text.webm';
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(newUrl);
-                    }, 500);
+            // Use showSaveFilePicker if available
+            if (window.showSaveFilePicker) {
+                console.log("  - Using showSaveFilePicker...");
+                
+                return window.showSaveFilePicker({
+                    suggestedName: 'video-with-text.webm',
+                    types: [{
+                        description: 'WebM Video',
+                        accept: { 'video/webm': ['.webm'] }
+                    }]
+                })
+                .then(fileHandle => {
+                    console.log("  - File picker returned handle");
+                    return fileHandle.createWritable();
+                })
+                .then(writable => {
+                    console.log("  - Writable stream created");
+                    return writable.write(outputBlob);
+                })
+                .then(() => {
+                    console.log("  - File written successfully");
+                    console.log("  ✅ File System Access API succeeded");
+                    return true;
                 })
                 .catch(err => {
-                    console.warn('خطای روش 9 fetch:', err);
-                    if (navigator.msSaveOrOpenBlob) {
-                        try {
-                            navigator.msSaveOrOpenBlob(outputBlob, 'video-with-text.webm');
-                            return true;
-                        } catch (e) {}
+                    console.warn("  ❌ File System Access API failed:", err);
+                    if (err.name === 'AbortError') {
+                        console.log("  - User cancelled file picker");
                     }
                     return false;
                 });
+            }
             
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            return true;
+            // Fallback: try with directory picker
+            if (window.showDirectoryPicker) {
+                console.log("  - Using showDirectoryPicker...");
+                return window.showDirectoryPicker()
+                    .then(dirHandle => {
+                        console.log("  - Directory picker returned");
+                        const fileHandle = dirHandle.getFileHandle('video-with-text.webm', { create: true });
+                        return fileHandle;
+                    })
+                    .then(fileHandle => {
+                        console.log("  - File handle created");
+                        return fileHandle.createWritable();
+                    })
+                    .then(writable => {
+                        console.log("  - Writable stream created");
+                        return writable.write(outputBlob);
+                    })
+                    .then(() => {
+                        console.log("  - File written successfully");
+                        console.log("  ✅ File System Access API succeeded");
+                        return true;
+                    })
+                    .catch(err => {
+                        console.warn("  ❌ File System Access API failed:", err);
+                        return false;
+                    });
+            }
+            
+            console.warn("  ❌ No File System Access method available");
+            return false;
         } catch (e) {
-            console.warn('خطای روش 9:', e);
+            console.error("  ❌ File System Access error:", e);
             return false;
         }
     }
-
-    function showTelegramDownloadError() {
+    
+    function showFinalError() {
+        console.log("=== FINAL ERROR MESSAGE ===");
         const message = "Telegram WebView اجازه دانلود فایل‌های ساخته شده محلی را در این دستگاه نمی‌دهد.\n\n" +
+                       "دلایل احتمالی:\n" +
+                       "1. Telegram WebView محدودیت امنیتی برای دانلود Blob دارد\n" +
+                       "2. مرورگر داخلی Telegram از دانلود Blob پشتیبانی نمی‌کند\n" +
+                       "3. خطا در ایجاد یا دسترسی به فایل خروجی\n\n" +
                        "راه‌های جایگزین:\n" +
                        "1. از دکمه اشتراک‌گذاری در تلگرام استفاده کنید\n" +
                        "2. ویدیو را در Saved Messages تلگرام ذخیره کنید\n" +
-                       "3. ویدیو را در مرورگر باز کرده و از آنجا دانلود کنید";
+                       "3. ویدیو را در مرورگر باز کرده و از آنجا دانلود کنید\n\n" +
+                       "برای اطلاعات بیشتر، کنسول مرورگر (F12) را بررسی کنید.";
         
-        console.error('❌ ' + message);
+        console.error("❌ " + message);
         alert(message);
         
-        // آخرین تلاش: دوباره ساده‌ترین روش را امتحان کن
+        // Final fallback attempt with simplest method
+        console.log("Attempting final fallback...");
         try {
             const a = document.createElement('a');
             const url = URL.createObjectURL(outputBlob);
@@ -891,16 +1244,19 @@
             a.download = 'video-with-text.webm';
             document.body.appendChild(a);
             a.click();
+            console.log("  - Fallback click executed");
             setTimeout(() => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                console.log("  - Fallback cleanup complete");
             }, 500);
         } catch (e) {
-            console.error('آخرین تلاش پشتیبان شکست خورد:', e);
+            console.error("Final fallback failed:", e);
         }
     }
-
-    // شروع فرآیند
+    
+    // Start the process
+    console.log("Starting method chain...");
     tryNextMethod();
 }
     </script>
