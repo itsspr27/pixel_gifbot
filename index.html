@@ -1018,29 +1018,30 @@
             });
         }
 
+        // Event listeners برای متن‌ها
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('text-input')) {
                 updateTextData();
             }
         });
 
-        document.querySelectorAll('.pos-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const parent = this.closest('.text-position-group');
+        // Event listeners برای دکمه‌های موقعیت
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('pos-btn')) {
+                const parent = e.target.closest('.text-position-group');
                 parent.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active-pos'));
-                this.classList.add('active-pos');
+                e.target.classList.add('active-pos');
                 updateTextData();
-            });
+            }
         });
 
-        document.querySelector('.text-input').addEventListener('input', updateTextData);
-
-        document.getElementById('videoInput').addEventListener('change', () => {
+        // Event listener برای فایل
+        document.getElementById('videoInput').addEventListener('change', function() {
             document.getElementById('generateBtn').disabled = false;
         });
 
         // ============================================================
-        // تابع پردازش اصلی - با رفع مشکل تشخیص ویدیو
+        // تابع پردازش - با رفع مشکل دکمه
         // ============================================================
         async function startProcessing() {
             if (processing) return;
@@ -1133,63 +1134,37 @@
                 const videoUrl = URL.createObjectURL(file);
                 video.src = videoUrl;
                 
-                // بارگذاری ویدیو با مدیریت خطا
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
-                        reject(new Error('زمان بارگذاری ویدیو به پایان رسید'));
-                    }, 30000);
+                        reject(new Error('Timeout: ویدیو بارگذاری نشد'));
+                    }, 20000);
                     
                     video.onloadedmetadata = () => {
                         clearTimeout(timeout);
                         console.log('Video loaded:', video.videoWidth, 'x', video.videoHeight);
-                        console.log('Video duration:', video.duration);
                         resolve();
                     };
                     
                     video.onerror = (e) => {
                         clearTimeout(timeout);
-                        console.error('Video onerror:', e);
-                        reject(new Error('خطا در بارگذاری ویدیو'));
+                        reject(new Error('Video load error'));
                     };
-                    
-                    // اگر ویدیو از قبل بارگذاری شده بود
-                    if (video.readyState >= 1) {
-                        clearTimeout(timeout);
-                        resolve();
-                    }
                 });
 
-                // بررسی ابعاد ویدیو
                 if (!video.videoWidth || !video.videoHeight || video.videoWidth <= 0 || video.videoHeight <= 0) {
-                    throw new Error('ابعاد ویدیو نامعتبر است');
+                    throw new Error('Invalid video dimensions');
                 }
 
-                // بررسی مدت زمان ویدیو
-                let duration = video.duration;
-                if (!duration || duration <= 0 || !isFinite(duration)) {
-                    // تلاش برای دریافت duration از متادیتا
-                    console.warn('Duration نامعتبر، تلاش برای دریافت مجدد...');
-                    await new Promise((resolve) => {
-                        video.onloadedmetadata = () => {
-                            duration = video.duration;
-                            resolve();
-                        };
-                        setTimeout(resolve, 1000);
-                    });
-                    
-                    if (!duration || duration <= 0 || !isFinite(duration)) {
-                        throw new Error('مدت زمان ویدیو نامعتبر است');
-                    }
+                if (!video.duration || video.duration <= 0 || !isFinite(video.duration)) {
+                    throw new Error('Invalid video duration');
                 }
 
-                recordedDuration = duration;
-                console.log('Duration final:', recordedDuration);
+                recordedDuration = video.duration;
 
-                // اطمینان از اینکه ویدیو در موقعیت 0 قرار دارد
                 video.currentTime = 0;
-                await new Promise((resolve) => {
+                await new Promise(resolve => {
                     video.onseeked = () => resolve();
-                    setTimeout(resolve, 1000);
+                    setTimeout(() => resolve(), 2000);
                 });
 
                 // Setup canvas
@@ -1298,8 +1273,8 @@
                     console.log('Video playing (muted)');
                 }
 
-                const durationFinal = video.duration;
-                console.log('Processing duration:', durationFinal, 'seconds');
+                const duration = video.duration;
+                console.log('Processing duration:', duration, 'seconds');
 
                 const fontFamily = 'Vazirmatn';
                 let elapsedTime = 0;
@@ -1407,7 +1382,7 @@
                         elapsedTime = (currentTime - startTime) / 1000;
 
                         const currentTimeVideo = video.currentTime || 0;
-                        const isEnded = video.ended || (currentTimeVideo >= durationFinal - 0.05);
+                        const isEnded = video.ended || (currentTimeVideo >= duration - 0.05);
                         
                         if (isEnded) {
                             console.log('Video ended at:', currentTimeVideo);
@@ -1417,7 +1392,7 @@
                             return;
                         }
 
-                        if (elapsedTime >= durationFinal + 1) {
+                        if (elapsedTime >= duration + 1) {
                             console.log('Elapsed time exceeded duration');
                             if (recorder && recorder.state === 'recording') {
                                 safeStopRecorder();
@@ -1430,7 +1405,7 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                        const percent = Math.min(Math.round((elapsedTime / durationFinal) * 100), 100);
+                        const percent = Math.min(Math.round((elapsedTime / duration) * 100), 100);
                         document.getElementById('percent').textContent = percent + '%';
                         document.getElementById('progressBar').style.width = percent + '%';
 
@@ -1477,7 +1452,7 @@
                         console.log('Safety timeout triggered');
                         safeStopRecorder();
                     }
-                }, (durationFinal * 1000) + 15000);
+                }, (duration * 1000) + 10000);
 
                 animationId = requestAnimationFrame(drawFrame);
 
@@ -1486,14 +1461,12 @@
                 const errorMsg = error.message || 'خطای ناشناخته';
                 
                 let userMessage = errorMsg;
-                if (errorMsg.includes('بارگذاری') || errorMsg.includes('load')) {
+                if (errorMsg.includes('Video load error')) {
                     userMessage = 'ویدیو قابل بارگذاری نیست. لطفاً از فرمت MP4 یا WebM استفاده کنید.';
-                } else if (errorMsg.includes('Timeout') || errorMsg.includes('زمان')) {
+                } else if (errorMsg.includes('Timeout')) {
                     userMessage = 'زمان بارگذاری ویدیو به پایان رسید. لطفاً فایل کوچک‌تری انتخاب کنید.';
-                } else if (errorMsg.includes('duration') || errorMsg.includes('مدت')) {
-                    userMessage = 'مدت زمان ویدیو نامعتبر است. لطفاً از یک ویدیوی معتبر استفاده کنید.';
-                } else if (errorMsg.includes('dimensions') || errorMsg.includes('ابعاد')) {
-                    userMessage = 'ابعاد ویدیو نامعتبر است. لطفاً از یک ویدیوی معتبر استفاده کنید.';
+                } else if (errorMsg.includes('duration')) {
+                    userMessage = 'مدت زمان ویدیو نامعتبر است.';
                 }
                 
                 alert('خطا در پردازش ویدیو: ' + userMessage);
