@@ -2,1583 +2,394 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پیکسل گیف بات - گیف خودتو بساز !</title>
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.6/fix-webm-duration.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>مکعب سه‌بعدی چرخان + تزیینات</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&family=Tanha:wght@400;700&family=Shabnam:wght@400;700&display=swap');
-        
+        /* تنظیمات پایه برای پوشش کامل صفحه */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         html, body {
+            width: 100%;
             height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            color: white;
         }
-        
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background: #0a0a0f;
-            color: #e0f2fe;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .top-nav {
-            position: sticky;
-            top: 10px;
-            z-index: 1000;
-            margin: 10px 15px 0 15px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
-        .top-nav .brand {
-            font-size: 18px;
-            font-weight: bold;
-            color: #67e8f9;
-            text-shadow: 0 0 20px rgba(103, 232, 249, 0.3);
-        }
-        
-        .menu-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e0f2fe;
-            font-size: 24px;
-            padding: 6px 14px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            line-height: 1;
-        }
-        
-        .menu-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.05);
-        }
-        
-        .menu-panel {
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 300px;
-            height: 100vh;
-            background: rgba(10, 10, 15, 0.95);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 80px 30px 30px 30px;
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2000;
-            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
-        }
-        
-        .menu-panel.open {
-            right: 0;
-        }
-        
-        .menu-panel .close-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e0f2fe;
-            font-size: 28px;
-            padding: 4px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .menu-panel .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .menu-panel .menu-title {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-bottom: 30px;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-        
-        .menu-panel .menu-item {
-            display: block;
-            padding: 16px 20px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: #e0f2fe;
-            text-decoration: none;
-            font-size: 16px;
-            transition: all 0.3s;
-            text-align: center;
-            cursor: pointer;
-        }
-        
-        .menu-panel .menu-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(-5px);
-            border-color: rgba(103, 232, 249, 0.3);
-        }
-        
-        .menu-panel .menu-item.rubika {
-            color: #60a5fa;
-        }
-        
-        .menu-panel .menu-item.rubika:hover {
-            background: rgba(96, 165, 250, 0.1);
-            border-color: #60a5fa;
-        }
-        
-        .menu-panel .menu-item.telegram {
-            color: #34d399;
-        }
-        
-        .menu-panel .menu-item.telegram:hover {
-            background: rgba(52, 211, 153, 0.1);
-            border-color: #34d399;
-        }
-        
-        .menu-panel .menu-item.problem {
-            color: #f59e0b;
-        }
-        
-        .menu-panel .menu-item.problem:hover {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: #f59e0b;
-        }
-        
-        .menu-panel .menu-divider {
-            height: 1px;
-            background: linear-gradient(to left, transparent, rgba(255,255,255,0.1), transparent);
-            margin: 20px 0;
-        }
-        
-        #starfield {
+
+        /* کانتینر اصلی سه‌بعدی */
+        #canvas-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
-            pointer-events: none;
-        }
-        
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 920px;
-            margin: 0 auto;
-            padding: 20px 25px 0 25px;
-            flex: 1 0 auto;
-        }
-        
-        .main-content {
-            background: rgba(10, 10, 15, 0.6);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            margin-bottom: 20px;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        h1 { 
-            text-align: center; 
-            color: #67e8f9; 
-            font-size: 24px;
-            text-shadow: 0 0 30px rgba(103, 232, 249, 0.2);
-        }
-        
-        label { 
-            display: block; 
-            margin: 15px 0 8px; 
-            font-weight: bold; 
-            color: #bae6fd; 
-        }
-        
-        input[type="file"] { 
-            width: 100%; 
-            padding: 14px; 
-            background: rgba(30, 41, 59, 0.4);
-            border: 2px dashed rgba(103, 232, 249, 0.2);
-            border-radius: 12px;
-            color: #e0f2fe;
-        }
-        
-        textarea { 
-            width: 100%; 
-            padding: 14px; 
-            background: rgba(30, 41, 59, 0.4);
-            border: 2px dashed rgba(103, 232, 249, 0.2);
-            border-radius: 12px;
-            color: #e0f2fe;
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 16px;
-            resize: vertical;
-            min-height: 60px;
-        }
-        
-        .text-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .add-text-btn {
-            padding: 8px 16px;
-            background: rgba(103, 232, 249, 0.15);
-            border: 1px solid rgba(103, 232, 249, 0.3);
-            color: #67e8f9;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: 'Vazirmatn', sans-serif;
-            transition: all 0.3s;
-            white-space: nowrap;
-            font-size: 14px;
-        }
-        
-        .add-text-btn:hover {
-            background: rgba(103, 232, 249, 0.25);
-        }
-        
-        .text-item {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .text-item textarea {
-            flex: 1;
-            min-height: 50px;
-            min-width: 150px;
-        }
-        
-        .text-item .remove-btn {
-            padding: 8px 12px;
-            background: rgba(244, 63, 94, 0.15);
-            border: 1px solid rgba(244, 63, 94, 0.3);
-            color: #f43f5e;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: 'Vazirmatn', sans-serif;
-            transition: all 0.3s;
-            font-size: 18px;
-            line-height: 1;
-        }
-        
-        .text-item .remove-btn:hover {
-            background: rgba(244, 63, 94, 0.25);
-        }
-        
-        .text-position-group {
-            display: flex;
-            gap: 5px;
-            margin: 5px 0;
-        }
-        
-        .text-position-group button {
-            padding: 4px 12px;
-            font-size: 12px;
-            background: rgba(51, 65, 85, 0.4);
-            color: #e0f2fe;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Vazirmatn', sans-serif;
-        }
-        
-        .text-position-group button.active-pos {
-            border-color: #67e8f9;
-            background: rgba(30, 41, 59, 0.7);
-            color: #67e8f9;
-        }
-        
-        .text-position-group button:hover {
-            background: rgba(51, 65, 85, 0.7);
-        }
-        
-        button { 
-            padding: 12px 20px; 
-            margin: 5px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: bold;
-            font-family: 'Vazirmatn', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        .generate-btn { 
-            width: 100%; 
-            padding: 18px; 
-            font-size: 18px; 
-            background: linear-gradient(135deg, #f43f5e, #ec4899);
-            color: white; 
-            border: none;
-            box-shadow: 0 4px 20px rgba(244, 63, 94, 0.3);
-        }
-        
-        .generate-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(244, 63, 94, 0.4);
-        }
-        
-        .generate-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        video { 
-            max-width: 100%; 
-            border-radius: 12px; 
-            margin: 15px 0;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .btn-group { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 8px; 
-            margin-top: 8px; 
-        }
-        
-        .btn-group button { 
-            flex: 1 0 auto; 
-            background: rgba(51, 65, 85, 0.4);
-            color: #e0f2fe; 
-            border: 2px solid transparent; 
-            transition: all 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        
-        .btn-group button:hover {
-            background: rgba(51, 65, 85, 0.7);
-        }
-        
-        .btn-group button.active { 
-            border-color: #67e8f9; 
-            background: rgba(30, 41, 59, 0.7);
-            color: #67e8f9; 
-        }
-        
-        .btn-group button.wide-active { 
-            border-color: #f59e0b; 
-            background: rgba(30, 41, 59, 0.7);
-            color: #f59e0b; 
-        }
-        
-        /* لودینگ پیشرفته */
-        #progress {
-            display: none;
-            text-align: center;
-            margin: 25px 0;
-            padding: 30px;
-            background: rgba(30, 41, 59, 0.3);
-            border-radius: 16px;
-            backdrop-filter: blur(5px);
-        }
-        
-        .loader-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .spinner-ring {
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-        
-        .spinner-ring .ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        }
-        
-        .spinner-ring .ring:nth-child(1) {
-            border-top-color: #67e8f9;
-            animation-delay: 0s;
-        }
-        
-        .spinner-ring .ring:nth-child(2) {
-            border-right-color: #f472b6;
-            animation-delay: 0.3s;
-        }
-        
-        .spinner-ring .ring:nth-child(3) {
-            border-bottom-color: #f59e0b;
-            animation-delay: 0.6s;
-        }
-        
-        .spinner-ring .ring:nth-child(4) {
-            border-left-color: #34d399;
-            animation-delay: 0.9s;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loader-text {
-            color: #94a3b8;
-            font-size: 14px;
-            letter-spacing: 1px;
-            min-height: 24px;
-        }
-        
-        .loader-progress {
-            width: 100%;
-            max-width: 300px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        
-        .loader-progress .bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #67e8f9, #f472b6, #f59e0b);
-            border-radius: 2px;
-            transition: width 0.1s ease;
-        }
-        
-        .loader-percent {
-            color: #67e8f9;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        
-        .loader-dots {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .loader-dots span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #67e8f9;
-            animation: bounce 1.4s ease-in-out infinite;
-        }
-        
-        .loader-dots span:nth-child(1) { animation-delay: 0s; }
-        .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        
-        .download-buttons { 
-            display: flex; 
-            gap: 10px; 
-            justify-content: center; 
-            flex-wrap: wrap; 
-            margin-top: 10px; 
-        }
-        
-        .download-btn { 
-            padding: 14px 30px; 
-            border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 16px;
-            font-family: 'Vazirmatn', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        .download-webm { 
-            background: linear-gradient(135deg, #34d399, #10b981);
-            color: #0f172a;
-            box-shadow: 0 4px 20px rgba(52, 211, 153, 0.3);
-        }
-        
-        .download-webm:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(52, 211, 153, 0.4);
-        }
-        
-        .download-btn:disabled { 
-            opacity: 0.5; 
-            cursor: not-allowed; 
-            transform: none !important;
-        }
-        
-        .wave-footer {
-            position: relative;
-            z-index: 1;
-            margin-top: auto;
-            width: 100%;
-            overflow: hidden;
-            background: transparent;
-            flex-shrink: 0;
-        }
-        
-        .wave-footer svg {
             display: block;
-            width: 100%;
-            height: 80px;
         }
-        
-        .wave-content {
-            background: linear-gradient(135deg, #1e3a5f, #2d1b69);
-            padding: 15px 20px 20px 20px;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 13px;
-        }
-        
-        .wave-content .text {
-            max-width: 920px;
-            margin: 0 auto;
-        }
-        
-        .wave-content .separator {
-            color: rgba(255, 255, 255, 0.3);
-            margin: 0 8px;
-        }
-        
-        .menu-overlay {
+
+        /* المان‌های تزیینی (ستاره‌های درخشان در پس‌زمینه) */
+        .stars, .twinkling {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1999;
-            opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4s;
+            z-index: 1;
         }
-        
-        .menu-overlay.active {
-            opacity: 1;
-            pointer-events: all;
+
+        .stars {
+            background: #000 url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjQwIiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjUwIiByPSIxLjUiIGZpbGw9IndoaXRlIi8+PGNpcmNsZSBjeD0iMjUwIiBjeT0iMTUwIiByPSIxIiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjEwMCIgcj0iMSIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSI0NTAiIGN5PSIyNTAiIHI9IjIiIGZpbGw9IndoaXRlIi8+PC9zdmc+') repeat;
+            background-size: 200px 200px;
+            animation: starMove 60s linear infinite;
+            opacity: 0.6;
         }
-        
+
+        .twinkling {
+            background: transparent url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjEwMCIgcj0iMiIgZmlsbD0id2hpdGUiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSIyMDAiIHI9IjEiIGZpbGw9IndoaXRlIi8+PC9zdmc+') repeat;
+            background-size: 300px 300px;
+            animation: twinkle 4s ease-in-out infinite alternate;
+            opacity: 0.3;
+        }
+
+        @keyframes starMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100px, -100px); }
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* نوشته‌ی اصلی صفحه با افکت */
+        .main-text {
+            position: absolute;
+            top: 8%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #f3ec78, #af4261);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glowPulse 3s ease-in-out infinite alternate;
+            padding: 0 15px;
+        }
+
+        @keyframes glowPulse {
+            0% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3)); }
+            100% { filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9)); }
+        }
+
+        /* دکمه‌ی ورود با طراحی خاص */
+        .btn-enter {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            padding: 16px 42px;
+            background: rgba(20, 30, 50, 0.7);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255, 215, 0, 0.6);
+            border-radius: 50px;
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            pointer-events: auto;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-enter:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
+            transform: translateX(-50%) scale(1.05);
+            border-color: #ffd700;
+        }
+
+        .btn-enter a {
+            color: inherit;
+            text-decoration: none;
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* المان تزیینی شناور (حلقه‌های نوری) */
+        .floating-orb {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(100, 200, 255, 0.1));
+            filter: blur(4px);
+            pointer-events: none;
+            z-index: 2;
+            animation: floatAnim 8s infinite alternate ease-in-out;
+        }
+
+        .orb1 {
+            width: 120px;
+            height: 120px;
+            top: 15%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .orb2 {
+            width: 180px;
+            height: 180px;
+            bottom: 20%;
+            right: 5%;
+            animation-delay: 2s;
+            background: radial-gradient(circle at 70% 70%, rgba(255, 100, 150, 0.2), rgba(200, 100, 255, 0.1));
+        }
+
+        @keyframes floatAnim {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -30px) scale(1.1); }
+        }
+
+        /* ریسپانسیو */
         @media (max-width: 600px) {
-            .top-nav {
-                margin: 8px 10px 0 10px;
-                padding: 10px 15px;
+            .main-text {
+                font-size: 1.5rem;
+                top: 5%;
             }
-            .top-nav .brand {
-                font-size: 15px;
+            .btn-enter {
+                padding: 12px 24px;
+                font-size: 1.2rem;
+                bottom: 10%;
+                white-space: normal;
             }
-            .menu-panel {
-                width: 280px;
-                right: -290px;
-                padding: 70px 20px 20px 20px;
-            }
-            .container {
-                padding: 10px 12px 0 12px;
-            }
-            .main-content {
-                padding: 16px;
-            }
-            h1 {
-                font-size: 20px;
-            }
-            .wave-content {
-                font-size: 11px;
-                padding: 12px 15px 15px 15px;
-            }
-            .wave-footer svg {
-                height: 50px;
-            }
-            .text-item {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .text-item textarea {
-                min-width: auto;
+            .floating-orb {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <canvas id="starfield"></canvas>
-    
-    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
-    
-    <div class="menu-panel" id="menuPanel">
-        <button class="close-btn" onclick="closeMenu()">✕</button>
-        <div class="menu-title">⋆･ﾟ: ✧ MENU ✧ :ﾟ･⋆</div>
-        
-        <a href="https://rubika.ir/pixel_gif" target="_blank" class="menu-item rubika">
-            <span>📱</span> کانال روبیکا
-        </a>
-        
-        <a href="https://t.me/pixel_gify" target="_blank" class="menu-item telegram">
-            <span>✈️</span> کانال تلگرام
-        </a>
-        
-        <div class="menu-divider"></div>
-        
-        <a href="https://rubika.ir/pixel_gif/BIDFBHAAAIFGIBEA" target="_blank" class="menu-item problem">
-            <span>❓</span> مشکل ارسال نشدن گیف داخل پیام رسان
-        </a>
-        
-        <div class="menu-divider"></div>
-        
-        <div style="text-align:center; color:#475569; font-size:12px; padding:10px;">
-            نسخه ۲.۰<br>
-            ساخته شده با 💜
-        </div>
-    </div>
-    
-    <nav class="top-nav">
-        <div class="brand">✦ پیکسل گیف بات</div>
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    </nav>
-    
-    <div class="container">
-        <div class="main-content">
-            <h1>🎥 پیکسل گیف بات - گیف خودتو بساز !</h1>
-            
-            <label>1. انتخاب ویدیو</label>
-            <input type="file" id="videoInput" accept="video/*">
-            
-            <label>2. متن‌ها</label>
-            <div id="textContainer">
-                <div class="text-item" data-index="0">
-                    <textarea class="text-input" placeholder="متن اول را وارد کنید"></textarea>
-                    <div>
-                        <div class="text-position-group">
-                            <button class="pos-btn active-pos" data-pos="center" data-index="0">وسط</button>
-                            <button class="pos-btn" data-pos="top" data-index="0">بالا</button>
-                            <button class="pos-btn" data-pos="bottom" data-index="0">پایین</button>
-                        </div>
-                    </div>
-                    <button class="remove-btn" onclick="removeText(0)" style="display:none;">✕</button>
-                </div>
-            </div>
-            
-            <div class="text-row">
-                <button class="add-text-btn" onclick="addText()">➕ افزودن متن جدید</button>
-            </div>
-            
-            <label>3. حالت Wide</label>
-            <div class="btn-group" id="wideGroup">
-                <button onclick="toggleWide(this)" class="">📐 Wide (۵۰%)</button>
-            </div>
-            
-            <button onclick="startProcessing()" id="generateBtn" disabled class="generate-btn">🚀 ساخت ویدیو</button>
-            
-            <div id="progress">
-                <div class="loader-container">
-                    <div class="spinner-ring">
-                        <div class="ring"></div>
-                        <div class="ring"></div>
-                        <div class="ring"></div>
-                        <div class="ring"></div>
-                    </div>
-                    <div class="loader-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                    <div class="loader-percent" id="percent">0%</div>
-                    <div class="loader-progress">
-                        <div class="bar" id="progressBar"></div>
-                    </div>
-                    <div class="loader-text" id="loaderText">در حال آماده‌سازی...</div>
-                </div>
-            </div>
-            
-            <div id="output" style="display:none; text-align:center;">
-                <h3>✅ ویدیو آماده شد</h3>
-                <video id="outputVideo" controls></video><br><br>
-                <div class="download-buttons">
-                    <button onclick="downloadOutput()" id="downloadBtn" class="download-btn download-webm">⬇️ دانلود</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="wave-footer">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,60 C300,120 600,0 900,60 C1050,90 1150,80 1200,60 L1200,120 L0,120 Z" fill="url(#waveGrad)"/>
-            <defs>
-                <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
-                    <stop offset="50%" style="stop-color:#3b1f6e;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#1e3a5f;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-        </svg>
-        <div class="wave-content">
-            <div class="text">
-                <span>⚠️</span>
-                <span>سایت چند بار دزدیده شده اگر سایت مشابه دیدید ازش استفاده نکنید</span>
-                <span class="separator">—</span>
-                <span>سایت اصلی این میباشد</span>
-            </div>
-        </div>
+
+    <!-- المان‌های پس‌زمینه‌ی تزیینی -->
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+    <div class="floating-orb orb1"></div>
+    <div class="floating-orb orb2"></div>
+
+    <!-- نوشته‌ی اصلی با متن جدید -->
+    <div class="main-text">🚀 سایت به آدرس دیگر منتقل شده</div>
+
+    <!-- دکمه‌ی ورود به سایت -->
+    <div class="btn-enter">
+        <a href="https://itsspr.isfpardaz.ir/pixelgif.html" target="_blank">🎯 ورود به سایت</a>
     </div>
 
-    <script>
-        // ============================================================
-        // پس‌زمینه ستاره‌ای
-        // ============================================================
-        const canvas = document.getElementById('starfield');
-        const ctx = canvas.getContext('2d');
-        let stars = [];
-        let shootingStars = [];
-        let W, H;
+    <!-- کانتینر Three.js برای مکعب سه‌بعدی -->
+    <div id="canvas-container"></div>
 
-        function resize() {
-            W = canvas.width = window.innerWidth;
-            H = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Star {
-            constructor() {
-                this.reset();
-                this.y = Math.random() * H;
-            }
-            reset() {
-                this.x = Math.random() * W;
-                this.y = -5;
-                this.size = Math.random() * 2 + 0.5;
-                this.speed = Math.random() * 0.3 + 0.1;
-                this.opacity = Math.random() * 0.6 + 0.4;
-                this.twinkleSpeed = Math.random() * 0.02 + 0.005;
-                this.twinkleOffset = Math.random() * Math.PI * 2;
-            }
-            update() {
-                this.y += this.speed;
-                if (this.y > H + 5) {
-                    this.reset();
-                    this.y = -5;
-                }
-                this.twinkleOffset += this.twinkleSpeed;
-            }
-            draw() {
-                const alpha = this.opacity * (0.7 + 0.3 * Math.sin(this.twinkleOffset));
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-                ctx.fill();
-                if (this.size > 1.5) {
-                    ctx.shadowColor = `rgba(255, 255, 255, ${alpha * 0.3})`;
-                    ctx.shadowBlur = 8;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                }
-            }
-        }
-
-        class ShootingStar {
-            constructor() {
-                this.reset();
-                this.active = false;
-                this.life = 0;
-                this.maxLife = 0;
-            }
-            reset() {
-                this.x = Math.random() * W * 0.6;
-                this.y = Math.random() * H * 0.3;
-                this.length = Math.random() * 80 + 40;
-                this.speed = Math.random() * 6 + 4;
-                this.angle = Math.PI / 4 + (Math.random() - 0.5) * 0.5;
-                this.opacity = 0;
-                this.maxLife = Math.random() * 60 + 40;
-                this.life = 0;
-                this.active = true;
-            }
-            update() {
-                if (!this.active) {
-                    if (Math.random() < 0.002) {
-                        this.reset();
-                    }
-                    return;
-                }
-                this.life++;
-                this.x += Math.cos(this.angle) * this.speed;
-                this.y += Math.sin(this.angle) * this.speed;
-                if (this.life < 20) {
-                    this.opacity = this.life / 20;
-                } else if (this.life > this.maxLife - 20) {
-                    this.opacity = (this.maxLife - this.life) / 20;
-                } else {
-                    this.opacity = 1;
-                }
-                if (this.life > this.maxLife || this.x > W || this.y > H) {
-                    this.active = false;
-                }
-            }
-            draw() {
-                if (!this.active || this.opacity < 0.01) return;
-                const endX = this.x - Math.cos(this.angle) * this.length;
-                const endY = this.y - Math.sin(this.angle) * this.length;
-                const grad = ctx.createLinearGradient(this.x, this.y, endX, endY);
-                grad.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`);
-                grad.addColorStop(0.3, `rgba(200, 220, 255, ${this.opacity * 0.6})`);
-                grad.addColorStop(1, `rgba(255, 255, 255, 0)`);
-                ctx.beginPath();
-                ctx.moveTo(this.x, this.y);
-                ctx.lineTo(endX, endY);
-                ctx.strokeStyle = grad;
-                ctx.lineWidth = 2;
-                ctx.shadowColor = `rgba(150, 200, 255, ${this.opacity * 0.3})`;
-                ctx.shadowBlur = 20;
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.shadowColor = `rgba(200, 220, 255, ${this.opacity * 0.5})`;
-                ctx.shadowBlur = 15;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-
-        for (let i = 0; i < 150; i++) {
-            const star = new Star();
-            star.y = Math.random() * H;
-            stars.push(star);
-        }
-
-        for (let i = 0; i < 5; i++) {
-            const ss = new ShootingStar();
-            ss.active = false;
-            shootingStars.push(ss);
-        }
-
-        function animateStars() {
-            ctx.clearRect(0, 0, W, H);
-            ctx.fillStyle = '#0a0a0f';
-            ctx.fillRect(0, 0, W, H);
-            stars.forEach(star => {
-                star.update();
-                star.draw();
-            });
-            shootingStars.forEach(ss => {
-                ss.update();
-                ss.draw();
-            });
-            requestAnimationFrame(animateStars);
-        }
-        animateStars();
-
-        // ============================================================
-        // کد اصلی برنامه
-        // ============================================================
-        let currentPos = 'center';
-        let outputBlob = null;
-        let processing = false;
-        let wideMode = false;
-        let recordedDuration = 0;
-        let recordingStartTime = 0;
-        let textCounter = 1;
-        let textData = [{ text: '', position: 'center' }];
-
-        // لیست پیام‌های انیمیشن لودینگ
-        const loadingMessages = [
-            "🎬 در حال آماده‌سازی صحنه...",
-            "🎥 در حال رندرینگ فریم‌ها...",
-            "✨ در حال جادو کردن ویدیو...",
-            "🌀 در حال پردازش پیکسل‌ها...",
-            "⚡ در حال سرعت بخشیدن به ویدیو...",
-            "🎨 در حال اضافه کردن افکت‌های ویژه...",
-            "🌟 در حال زیبا سازی ویدیو...",
-            "🚀 در حال آماده‌سازی برای پخش...",
-            "💫 در حال هماهنگ سازی صدا و تصویر...",
-            "🌈 در حال اضافه کردن رنگ به ویدیو...",
-            "🎯 در حال تنظیم دقیق جزئیات...",
-            "🔥 در حال داغ کردن ویدیو...",
-            "⭐ در حال ستاره بارون کردن ویدیو...",
-            "🎪 در حال آماده‌سازی برای نمایش...",
-            "📽️ در حال آماده‌سازی فیلم...",
-            "🎞️ در حال پردازش فریم‌ها...",
-            "🔄 در حال چرخش ویدیو...",
-            "💎 در حال الماس سازی ویدیو..."
-        ];
-
-        let messageInterval = null;
-
-        function setPos(pos, btn) {
-            currentPos = pos;
-            document.querySelectorAll('#posGroup button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        function toggleWide(btn) {
-            wideMode = !wideMode;
-            btn.classList.toggle('wide-active');
-            btn.textContent = wideMode ? '📐 Wide (فعال)' : '📐 Wide (۵۰%)';
-        }
-
-        function toggleMenu() {
-            document.getElementById('menuPanel').classList.toggle('open');
-            document.getElementById('menuOverlay').classList.toggle('active');
-        }
-
-        function closeMenu() {
-            document.getElementById('menuPanel').classList.remove('open');
-            document.getElementById('menuOverlay').classList.remove('active');
-        }
-
-        // ============================================================
-        // توابع مدیریت متن‌ها
-        // ============================================================
-        function addText() {
-            const container = document.getElementById('textContainer');
-            const index = textCounter;
-            const div = document.createElement('div');
-            div.className = 'text-item';
-            div.dataset.index = index;
-            div.innerHTML = `
-                <textarea class="text-input" placeholder="متن ${index + 1} را وارد کنید"></textarea>
-                <div>
-                    <div class="text-position-group">
-                        <button class="pos-btn active-pos" data-pos="center" data-index="${index}">وسط</button>
-                        <button class="pos-btn" data-pos="top" data-index="${index}">بالا</button>
-                        <button class="pos-btn" data-pos="bottom" data-index="${index}">پایین</button>
-                    </div>
-                </div>
-                <button class="remove-btn" onclick="removeText(${index})">✕</button>
-            `;
-            container.appendChild(div);
-            
-            div.querySelectorAll('.pos-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const parent = this.closest('.text-position-group');
-                    parent.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active-pos'));
-                    this.classList.add('active-pos');
-                    updateTextData();
-                });
-            });
-            
-            div.querySelector('.text-input').addEventListener('input', updateTextData);
-            
-            textCounter++;
-            updateTextData();
-        }
-
-        function removeText(index) {
-            const items = document.querySelectorAll('.text-item');
-            if (items.length <= 1) {
-                alert('حداقل یک متن باید داشته باشید');
-                return;
-            }
-            const item = document.querySelector(`.text-item[data-index="${index}"]`);
-            if (item) {
-                item.remove();
-                updateTextData();
-            }
-        }
-
-        function updateTextData() {
-            textData = [];
-            document.querySelectorAll('.text-item').forEach(item => {
-                const text = item.querySelector('.text-input').value;
-                const posBtn = item.querySelector('.pos-btn.active-pos');
-                const position = posBtn ? posBtn.dataset.pos : 'center';
-                textData.push({ text, position });
-            });
-        }
-
-        // Event listeners برای متن‌ها
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('text-input')) {
-                updateTextData();
-            }
-        });
-
-        // Event listeners برای دکمه‌های موقعیت
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('pos-btn')) {
-                const parent = e.target.closest('.text-position-group');
-                parent.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active-pos'));
-                e.target.classList.add('active-pos');
-                updateTextData();
-            }
-        });
-
-        // Event listener برای فایل
-        document.getElementById('videoInput').addEventListener('change', function() {
-            document.getElementById('generateBtn').disabled = false;
-        });
-
-        // ============================================================
-        // تابع پردازش - با رفع مشکل دکمه
-        // ============================================================
-        async function startProcessing() {
-            if (processing) return;
-            
-            const file = document.getElementById('videoInput').files[0];
-            if (!file) {
-                alert('لطفاً یک ویدیو انتخاب کنید');
-                return;
-            }
-
-            // دریافت متن‌ها
-            updateTextData();
-            const texts = textData.filter(t => t.text.trim() !== '');
-
-            processing = true;
-            document.getElementById('generateBtn').disabled = true;
-            document.getElementById('progress').style.display = 'block';
-            document.getElementById('output').style.display = 'none';
-            document.getElementById('percent').textContent = '0%';
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('downloadBtn').disabled = true;
-
-            // شروع انیمیشن پیام‌ها
-            let msgIndex = 0;
-            document.getElementById('loaderText').textContent = loadingMessages[0];
-            if (messageInterval) clearInterval(messageInterval);
-            messageInterval = setInterval(() => {
-                msgIndex = (msgIndex + 1) % loadingMessages.length;
-                document.getElementById('loaderText').textContent = loadingMessages[msgIndex];
-            }, 1200);
-
-            let video = null;
-            let canvas = null;
-            let stream = null;
-            let recorder = null;
-            let animationId = null;
-            let safetyTimeout = null;
-            let stopRequested = false;
-            let chunks = [];
-            let stopped = false;
-            let startTime = 0;
-
-            const safeStopRecorder = () => {
-                if (stopped) return;
-                stopped = true;
-                
-                if (animationId) {
-                    try { cancelAnimationFrame(animationId); } catch(e) {}
-                    animationId = null;
-                }
-                
-                if (safetyTimeout) {
-                    try { clearTimeout(safetyTimeout); } catch(e) {}
-                    safetyTimeout = null;
-                }
-                
-                if (messageInterval) {
-                    clearInterval(messageInterval);
-                    messageInterval = null;
-                }
-                
-                if (recorder && recorder.state === 'recording') {
-                    try {
-                        console.log('Stopping recorder...');
-                        recorder.stop();
-                    } catch(e) {
-                        console.warn('Recorder stop error:', e);
-                    }
-                }
-                
-                if (stream) {
-                    try { stream.getTracks().forEach(t => t.stop()); } catch(e) {}
-                }
-                
-                if (video && video.parentNode) {
-                    try { document.body.removeChild(video); } catch(e) {}
-                }
-            };
-
-            try {
-                console.log('شروع پردازش...');
-                
-                video = document.createElement('video');
-                video.muted = true;
-                video.playsInline = true;
-                video.preload = 'auto';
-                video.style.display = 'none';
-                document.body.appendChild(video);
-
-                const videoUrl = URL.createObjectURL(file);
-                video.src = videoUrl;
-                
-                await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        reject(new Error('Timeout: ویدیو بارگذاری نشد'));
-                    }, 20000);
-                    
-                    video.onloadedmetadata = () => {
-                        clearTimeout(timeout);
-                        console.log('Video loaded:', video.videoWidth, 'x', video.videoHeight);
-                        resolve();
-                    };
-                    
-                    video.onerror = (e) => {
-                        clearTimeout(timeout);
-                        reject(new Error('Video load error'));
-                    };
-                });
-
-                if (!video.videoWidth || !video.videoHeight || video.videoWidth <= 0 || video.videoHeight <= 0) {
-                    throw new Error('Invalid video dimensions');
-                }
-
-                if (!video.duration || video.duration <= 0 || !isFinite(video.duration)) {
-                    throw new Error('Invalid video duration');
-                }
-
-                recordedDuration = video.duration;
-
-                video.currentTime = 0;
-                await new Promise(resolve => {
-                    video.onseeked = () => resolve();
-                    setTimeout(() => resolve(), 2000);
-                });
-
-                // Setup canvas
-                canvas = document.createElement('canvas');
-                let canvasWidth = wideMode ? Math.round(video.videoWidth * 1.5) : video.videoWidth;
-                let canvasHeight = video.videoHeight;
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-                const ctx = canvas.getContext('2d');
-
-                // Setup stream and recorder
-                stream = canvas.captureStream(30);
-                recorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm;codecs=vp8',
-                    videoBitsPerSecond: 2500000
-                });
-                chunks = [];
-
-                recorder.ondataavailable = (e) => {
-                    if (e.data && e.data.size > 0) {
-                        chunks.push(e.data);
-                        console.log('Chunk received:', e.data.size);
-                    }
-                };
-
-                recorder.onstop = async () => {
-                    if (stopRequested) return;
-                    stopRequested = true;
-                    
-                    console.log('Recorder stopped, chunks:', chunks.length);
-                    
-                    if (chunks.length > 0) {
-                        try {
-                            const rawBlob = new Blob(chunks, { type: 'video/webm' });
-                            console.log('Raw blob size:', rawBlob.size);
-                            
-                            let finalBlob = rawBlob;
-                            const durationMs = recordedDuration * 1000;
-                            
-                            if (typeof window.ysFixWebmDuration === 'function') {
-                                try {
-                                    console.log('Fixing WebM duration with library...');
-                                    finalBlob = await window.ysFixWebmDuration(rawBlob, durationMs, { logger: false });
-                                    console.log('Duration fixed successfully');
-                                } catch (fixError) {
-                                    console.warn('Library fix failed, using raw blob:', fixError);
-                                    finalBlob = rawBlob;
-                                }
-                            } else {
-                                console.warn('ysFixWebmDuration not available, using raw blob');
-                                try {
-                                    finalBlob = await fixWebmDurationManually(rawBlob, durationMs);
-                                } catch (e) {
-                                    console.warn('Manual fix failed:', e);
-                                    finalBlob = rawBlob;
-                                }
-                            }
-                            
-                            outputBlob = finalBlob;
-                            
-                            const url = URL.createObjectURL(finalBlob);
-                            document.getElementById('outputVideo').src = url;
-                            document.getElementById('output').style.display = 'block';
-                            document.getElementById('progress').style.display = 'none';
-                            document.getElementById('generateBtn').disabled = false;
-                            document.getElementById('downloadBtn').disabled = false;
-                            console.log('✅ Recording finished, size:', (finalBlob.size / 1024 / 1024).toFixed(2), 'MB');
-                            
-                            const testVideo = document.createElement('video');
-                            testVideo.src = url;
-                            testVideo.onloadedmetadata = () => {
-                                console.log('✅ Final video duration:', testVideo.duration, 'seconds');
-                            };
-                            
-                        } catch(e) {
-                            console.error('Error creating blob:', e);
-                            alert('خطا در ساخت فایل خروجی: ' + e.message);
-                            document.getElementById('generateBtn').disabled = false;
-                            document.getElementById('progress').style.display = 'none';
-                            document.getElementById('downloadBtn').disabled = false;
-                        }
-                    } else {
-                        alert('خطا: ویدیو خروجی خالی است');
-                        document.getElementById('generateBtn').disabled = false;
-                        document.getElementById('progress').style.display = 'none';
-                        document.getElementById('downloadBtn').disabled = false;
-                    }
-                    
-                    if (messageInterval) {
-                        clearInterval(messageInterval);
-                        messageInterval = null;
-                    }
-                    safeStopRecorder();
-                    processing = false;
-                };
-
-                recorder.start(100);
-                recordingStartTime = Date.now();
-
-                try {
-                    await video.play();
-                    console.log('Video playing');
-                } catch (e) {
-                    video.muted = true;
-                    await video.play();
-                    console.log('Video playing (muted)');
-                }
-
-                const duration = video.duration;
-                console.log('Processing duration:', duration, 'seconds');
-
-                const fontFamily = 'Vazirmatn';
-                let elapsedTime = 0;
-                let frameCount = 0;
-                startTime = performance.now();
-
-                // تابع رسم متن‌ها
-                function drawTexts(ctx, canvas, texts) {
-                    if (!texts || texts.length === 0) return;
-                    
-                    const canvasCenterX = canvas.width / 2;
-                    const canvasCenterY = canvas.height / 2;
-                    const padding = 20;
-                    
-                    texts.forEach((item) => {
-                        const text = item.text;
-                        const position = item.position || 'center';
-                        if (!text || text.trim() === '') return;
-                        
-                        const lines = text.split('\n').filter(line => line.trim() !== '');
-                        if (lines.length === 0) return;
-                        
-                        let baseSize = Math.min(canvas.width, canvas.height) / 8;
-                        const aspectRatio = canvas.width / canvas.height;
-                        if (aspectRatio > 1.8) {
-                            baseSize = canvas.height / (4.2 + (lines.length - 1) * 0.8);
-                        } else if (aspectRatio < 1.1) {
-                            baseSize = canvas.width / (5.5 + (lines.length - 1) * 0.6);
-                        } else {
-                            baseSize = Math.min(canvas.width, canvas.height) / (6.5 + (lines.length - 1) * 0.5);
-                        }
-                        
-                        let fontSize = Math.max(16, baseSize);
-                        ctx.font = `bold ${fontSize}px ${fontFamily}`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'bottom';
-                        
-                        let maxLineWidth = 0;
-                        lines.forEach(line => {
-                            const metrics = ctx.measureText(line);
-                            if (metrics.width > maxLineWidth) maxLineWidth = metrics.width;
-                        });
-                        
-                        let maxWidth = canvas.width * 0.92;
-                        let minFontSize = 12;
-                        
-                        while (maxLineWidth > maxWidth && fontSize > minFontSize) {
-                            fontSize -= 1.5;
-                            ctx.font = `bold ${fontSize}px ${fontFamily}`;
-                            maxLineWidth = 0;
-                            lines.forEach(line => {
-                                const metrics = ctx.measureText(line);
-                                if (metrics.width > maxLineWidth) maxLineWidth = metrics.width;
-                            });
-                        }
-                        
-                        if (maxLineWidth > maxWidth) {
-                            fontSize = fontSize * (maxWidth / maxLineWidth) * 0.95;
-                            ctx.font = `bold ${fontSize}px ${fontFamily}`;
-                        }
-
-                        const lineHeight = fontSize * 1.4;
-                        const totalHeight = lines.length * lineHeight;
-                        
-                        let startY;
-                        const paddingOffset = fontSize * 0.5 + padding;
-                        
-                        if (position === 'top') {
-                            startY = paddingOffset + fontSize/2;
-                        } else if (position === 'bottom') {
-                            startY = canvas.height - paddingOffset;
-                        } else {
-                            startY = canvasCenterY + fontSize/3;
-                        }
-                        
-                        if (position === 'center') {
-                            startY = startY - totalHeight/2 + lineHeight/2;
-                        } else if (position === 'top') {
-                            startY = startY - totalHeight/2 + lineHeight/2;
-                        } else {
-                            startY = startY - totalHeight + lineHeight;
-                        }
-
-                        lines.forEach((line, idx) => {
-                            const y = startY + idx * lineHeight;
-                            
-                            ctx.strokeStyle = 'black';
-                            ctx.lineWidth = Math.max(6, fontSize / 5);
-                            ctx.strokeText(line, canvasCenterX, y);
-                            
-                            ctx.lineWidth = Math.max(3, fontSize / 8);
-                            ctx.strokeText(line, canvasCenterX, y);
-                            
-                            ctx.fillStyle = 'white';
-                            ctx.fillText(line, canvasCenterX, y);
-                        });
-                    });
-                }
-
-                const drawFrame = () => {
-                    if (stopRequested || stopped) return;
-
-                    try {
-                        const currentTime = performance.now();
-                        elapsedTime = (currentTime - startTime) / 1000;
-
-                        const currentTimeVideo = video.currentTime || 0;
-                        const isEnded = video.ended || (currentTimeVideo >= duration - 0.05);
-                        
-                        if (isEnded) {
-                            console.log('Video ended at:', currentTimeVideo);
-                            if (recorder && recorder.state === 'recording') {
-                                safeStopRecorder();
-                            }
-                            return;
-                        }
-
-                        if (elapsedTime >= duration + 1) {
-                            console.log('Elapsed time exceeded duration');
-                            if (recorder && recorder.state === 'recording') {
-                                safeStopRecorder();
-                            }
-                            return;
-                        }
-
-                        // Draw video frame
-                        ctx.fillStyle = '#000000';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                        const percent = Math.min(Math.round((elapsedTime / duration) * 100), 100);
-                        document.getElementById('percent').textContent = percent + '%';
-                        document.getElementById('progressBar').style.width = percent + '%';
-
-                        // Draw all texts
-                        drawTexts(ctx, canvas, texts);
-
-                        // واترمارک @pixel_gifbot
-                        ctx.save();
-                        const wmText = '@pixel_gifbot';
-                        let wmSize = Math.max(14, Math.min(canvas.width, canvas.height) / 32);
-                        
-                        ctx.font = `bold ${wmSize}px 'Ubuntu', sans-serif`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        
-                        const leftMargin = canvas.width * 0.015;
-                        const centerY = canvas.height / 2;
-                        
-                        ctx.translate(leftMargin + wmSize * 0.35, centerY);
-                        ctx.rotate(-Math.PI / 2);
-                        
-                        ctx.globalAlpha = 0.5;
-                        ctx.strokeStyle = '#000000';
-                        ctx.lineWidth = Math.max(4, wmSize / 4);
-                        ctx.strokeText(wmText, 0, 0);
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(wmText, 0, 0);
-                        
-                        ctx.restore();
-
-                        frameCount++;
-                        animationId = requestAnimationFrame(drawFrame);
-
-                    } catch (err) {
-                        console.error('DrawFrame error:', err);
-                        if (!stopRequested && !stopped) {
-                            safeStopRecorder();
-                        }
-                    }
-                };
-
-                safetyTimeout = setTimeout(() => {
-                    if (!stopRequested && !stopped) {
-                        console.log('Safety timeout triggered');
-                        safeStopRecorder();
-                    }
-                }, (duration * 1000) + 10000);
-
-                animationId = requestAnimationFrame(drawFrame);
-
-            } catch (error) {
-                console.error('Processing error:', error);
-                const errorMsg = error.message || 'خطای ناشناخته';
-                
-                let userMessage = errorMsg;
-                if (errorMsg.includes('Video load error')) {
-                    userMessage = 'ویدیو قابل بارگذاری نیست. لطفاً از فرمت MP4 یا WebM استفاده کنید.';
-                } else if (errorMsg.includes('Timeout')) {
-                    userMessage = 'زمان بارگذاری ویدیو به پایان رسید. لطفاً فایل کوچک‌تری انتخاب کنید.';
-                } else if (errorMsg.includes('duration')) {
-                    userMessage = 'مدت زمان ویدیو نامعتبر است.';
-                }
-                
-                alert('خطا در پردازش ویدیو: ' + userMessage);
-                if (messageInterval) {
-                    clearInterval(messageInterval);
-                    messageInterval = null;
-                }
-                safeStopRecorder();
-                processing = false;
-                document.getElementById('generateBtn').disabled = false;
-                document.getElementById('progress').style.display = 'none';
-                document.getElementById('downloadBtn').disabled = false;
-            }
-        }
-
-        function fixWebmDurationManually(blob, durationMs) {
-            return new Promise((resolve) => {
-                try {
-                    const reader = new FileReader();
-                    reader.onload = function() {
-                        try {
-                            const buffer = reader.result;
-                            const view = new DataView(buffer);
-                            
-                            const durationMarker = 0x4489;
-                            let durationOffset = -1;
-                            let durationLength = 0;
-                            
-                            const clusterMarker = 0x1F43B675;
-                            let clusterOffset = -1;
-                            
-                            for (let i = 0; i < buffer.byteLength - 4; i++) {
-                                if (view.getUint16(i) === durationMarker) {
-                                    durationOffset = i;
-                                    durationLength = view.getUint8(i + 2);
-                                    break;
-                                }
-                            }
-                            
-                            for (let i = 0; i < buffer.byteLength - 4; i++) {
-                                if (view.getUint32(i) === clusterMarker) {
-                                    clusterOffset = i;
-                                    break;
-                                }
-                            }
-                            
-                            const durationValue = durationMs / 1000;
-                            const floatBuffer = new ArrayBuffer(8);
-                            new DataView(floatBuffer).setFloat64(0, durationValue);
-                            const floatBytes = new Uint8Array(floatBuffer);
-                            
-                            let resultBuffer;
-                            
-                            if (durationOffset !== -1) {
-                                resultBuffer = new Uint8Array(buffer);
-                                for (let i = 0; i < 8 && i < durationLength; i++) {
-                                    resultBuffer[durationOffset + 3 + i] = floatBytes[i];
-                                }
-                            } else if (clusterOffset > 0) {
-                                const newSize = buffer.byteLength + 12;
-                                resultBuffer = new Uint8Array(newSize);
-                                resultBuffer.set(new Uint8Array(buffer), 0);
-                                
-                                const pos = clusterOffset;
-                                resultBuffer[pos - 2] = 0x44;
-                                resultBuffer[pos - 1] = 0x89;
-                                resultBuffer[pos] = 8;
-                                for (let i = 0; i < 8; i++) {
-                                    resultBuffer[pos + 1 + i] = floatBytes[i];
-                                }
-                            } else {
-                                resolve(blob);
-                                return;
-                            }
-                            
-                            resolve(new Blob([resultBuffer], { type: 'video/webm' }));
-                        } catch (e) {
-                            console.warn('Manual fix failed:', e);
-                            resolve(blob);
-                        }
-                    };
-                    reader.readAsArrayBuffer(blob);
-                } catch (e) {
-                    console.warn('Manual fix failed:', e);
-                    resolve(blob);
-                }
-            });
-        }
-
-        function downloadOutput() {
-            if (!outputBlob) {
-                alert('ویدیویی برای دانلود وجود ندارد');
-                return;
-            }
-            
-            try {
-                const a = document.createElement('a');
-                const url = URL.createObjectURL(outputBlob);
-                a.href = url;
-                a.download = 'video-with-text.webm';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                }, 1000);
-                console.log('✅ Download started successfully');
-            } catch (e) {
-                console.error('Download error:', e);
-                alert('خطا در دانلود: ' + e.message);
+    <!-- بارگذاری Three.js از CDN -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
             }
         }
     </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ---------- راه‌اندازی صحنه، دوربین، رندر ----------
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = null; // شفاف برای دیدن پس‌زمینه‌ی CSS
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(4, 3, 6);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // ---------- نورپردازی زیبا و با جزئیات ----------
+        const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffeedd, 1);
+        mainLight.position.set(2, 5, 3);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+
+        const backLight = new THREE.DirectionalLight(0x4466ff, 0.6);
+        backLight.position.set(-3, 1, -4);
+        scene.add(backLight);
+
+        const pointLight = new THREE.PointLight(0xff44aa, 0.5, 10);
+        pointLight.position.set(1, 2, 2);
+        scene.add(pointLight);
+
+        const pointLight2 = new THREE.PointLight(0x44ffaa, 0.5, 10);
+        pointLight2.position.set(-2, -1, 3);
+        scene.add(pointLight2);
+
+        // ---------- مکعب سه‌بعدی با جزئیات ----------
+        const cubeGroup = new THREE.Group();
+
+        // بدنه‌ی اصلی مکعب
+        const geometry = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x3a6ea5,
+            emissive: 0x112244,
+            roughness: 0.2,
+            metalness: 0.8,
+            transparent: true,
+            opacity: 0.92,
+            emissiveIntensity: 0.6
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        cubeGroup.add(cube);
+
+        // لبه‌های درخشان
+        const edges = new THREE.EdgesGeometry(geometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x88ccff });
+        const wireframe = new THREE.LineSegments(edges, lineMaterial);
+        cubeGroup.add(wireframe);
+
+        // گوشه‌های کوچک تزیینی
+        const corners = [
+            [1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1],
+            [-1, 1, 1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]
+        ];
+        const sphereMat = new THREE.MeshStandardMaterial({
+            color: 0xffaa44,
+            emissive: 0x442200,
+            roughness: 0.1,
+            metalness: 0.3
+        });
+        corners.forEach(pos => {
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), sphereMat);
+            sphere.position.set(pos[0], pos[1], pos[2]);
+            sphere.castShadow = true;
+            cubeGroup.add(sphere);
+        });
+
+        // حلقه‌های تزیینی دور مکعب
+        const ringParticlesGeo = new THREE.BufferGeometry();
+        const ringCount = 80;
+        const ringPositions = new Float32Array(ringCount * 3);
+        for (let i = 0; i < ringCount; i++) {
+            const angle = (i / ringCount) * Math.PI * 2;
+            const radius = 1.4;
+            ringPositions[i*3] = Math.cos(angle) * radius;
+            ringPositions[i*3+1] = Math.sin(angle) * radius * 0.5;
+            ringPositions[i*3+2] = Math.sin(angle) * radius * 0.3;
+        }
+        ringParticlesGeo.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
+        const ringParticlesMat = new THREE.PointsMaterial({
+            color: 0x88ddff,
+            size: 0.08,
+            transparent: true,
+            blending: THREE.AdditiveBlending
+        });
+        const ringParticles = new THREE.Points(ringParticlesGeo, ringParticlesMat);
+        cubeGroup.add(ringParticles);
+
+        // حلقه‌ی دوم
+        const ringParticlesGeo2 = new THREE.BufferGeometry();
+        const ringPositions2 = new Float32Array(ringCount * 3);
+        for (let i = 0; i < ringCount; i++) {
+            const angle = (i / ringCount) * Math.PI * 2;
+            const radius = 1.5;
+            ringPositions2[i*3] = Math.sin(angle) * radius * 0.3;
+            ringPositions2[i*3+1] = Math.cos(angle) * radius;
+            ringPositions2[i*3+2] = Math.sin(angle) * radius * 0.7;
+        }
+        ringParticlesGeo2.setAttribute('position', new THREE.BufferAttribute(ringPositions2, 3));
+        const ringParticlesMat2 = new THREE.PointsMaterial({
+            color: 0xff88aa,
+            size: 0.07,
+            transparent: true,
+            blending: THREE.AdditiveBlending
+        });
+        const ringParticles2 = new THREE.Points(ringParticlesGeo2, ringParticlesMat2);
+        cubeGroup.add(ringParticles2);
+
+        scene.add(cubeGroup);
+
+        // ---------- ذرات شناور در پس‌زمینه ----------
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 600;
+        const posArray = new Float32Array(particlesCount * 3);
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            posArray[i] = (Math.random() - 0.5) * 30;
+            posArray[i+1] = (Math.random() - 0.5) * 20;
+            posArray[i+2] = (Math.random() - 0.5) * 30 - 5;
+        }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            color: 0x88aaff,
+            size: 0.08,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            opacity: 0.5
+        });
+        const particles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particles);
+
+        // ---------- انیمیشن ----------
+        let time = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            cubeGroup.rotation.x = Math.sin(time * 0.3) * 0.3;
+            cubeGroup.rotation.y += 0.015;
+            cubeGroup.rotation.z = Math.sin(time * 0.2) * 0.1;
+
+            ringParticles.rotation.y += 0.01;
+            ringParticles.rotation.x = Math.sin(time * 0.5) * 0.1;
+            ringParticles2.rotation.y -= 0.015;
+            ringParticles2.rotation.z = Math.cos(time * 0.4) * 0.1;
+
+            particles.rotation.y += 0.0005;
+
+            pointLight.color.setHSL(Math.sin(time * 0.1) * 0.1 + 0.6, 0.8, 0.5);
+            pointLight2.color.setHSL(Math.sin(time * 0.15 + 2) * 0.1 + 0.3, 0.8, 0.5);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // ---------- ریسپانسیو ----------
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
 </body>
-    </html>
+</html>
